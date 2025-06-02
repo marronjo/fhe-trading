@@ -5,7 +5,7 @@ import { FheTypes } from "cofhejs/web";
 import type { NextPage } from "next";
 import { useAccount } from "wagmi";
 import { Address } from "~~/components/scaffold-eth";
-import { useScaffoldReadContract } from "~~/hooks/scaffold-eth";
+import { useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
 
 const Home: NextPage = () => {
   const { address: connectedAddress } = useAccount();
@@ -68,7 +68,39 @@ const FHECounter = () => {
   return (
     <div className="flex flex-col bg-base-100 px-10 py-10 text-center items-center rounded-3xl">
       <p className="font-bold w-full">FHECounter</p>
+      <div className="flex flex-row gap-2">
+        <IncrementButton />
+        <DecrementButton />
+      </div>
       <EncryptedValue value={count} />
+    </div>
+  );
+};
+
+const IncrementButton = () => {
+  const { isPending, writeContractAsync } = useScaffoldWriteContract({ contractName: "FHECounter" });
+
+  return (
+    <div
+      className={`btn btn-primary ${isPending ? "btn-disabled" : ""}`}
+      onClick={() => writeContractAsync({ functionName: "increment" })}
+    >
+      {isPending && <span className="loading loading-spinner loading-xs"></span>}
+      {isPending ? "Pending..." : "Increment"}
+    </div>
+  );
+};
+
+const DecrementButton = () => {
+  const { isPending, writeContractAsync } = useScaffoldWriteContract({ contractName: "FHECounter" });
+
+  return (
+    <div
+      className={`btn btn-primary ${isPending ? "btn-disabled" : ""}`}
+      onClick={() => writeContractAsync({ functionName: "decrement" })}
+    >
+      {isPending && <span className="loading loading-spinner loading-xs"></span>}
+      {isPending ? "Pending..." : "Decrement"}
     </div>
   );
 };
