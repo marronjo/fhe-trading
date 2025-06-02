@@ -4,7 +4,7 @@ import { FheTypes, UnsealedItem } from "cofhejs/web";
 import { cofhejs } from "cofhejs/web";
 import { zeroAddress } from "viem";
 
-type DecryptionResult<T extends FheTypes> =
+export type DecryptionResult<T extends FheTypes> =
   | {
       fheType: T;
       ctHash: null;

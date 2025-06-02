@@ -1,13 +1,9 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { useDecryptValue } from "./useDecrypt";
-import { Encryptable, FheTypes, cofhejs } from "cofhejs/web";
+import { FHECounterComponent } from "./FHECounterComponent";
 import type { NextPage } from "next";
 import { useAccount } from "wagmi";
-import { Address, IntegerInput, IntegerVariant } from "~~/components/scaffold-eth";
-import { useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
-import { notification } from "~~/utils/scaffold-eth";
+import { Address } from "~~/components/scaffold-eth";
 
 const Home: NextPage = () => {
   const { address: connectedAddress } = useAccount();
@@ -53,129 +49,12 @@ const Home: NextPage = () => {
 
         <div className="grow bg-base-300 w-full mt-16 px-8 py-12">
           <div className="flex justify-center items-center gap-12 flex-col md:flex-row">
-            <FHECounter />
+            <FHECounterComponent />
           </div>
         </div>
       </div>
     </>
   );
-};
-
-const FHECounter = () => {
-  const { data: count } = useScaffoldReadContract({
-    contractName: "FHECounter",
-    functionName: "count",
-  });
-
-  return (
-    <div className="flex flex-col bg-base-100 px-10 py-10 text-center items-start rounded-3xl gap-2">
-      <p className="font-bold">FHECounter</p>
-      <p>Counter Actions:</p>
-      <SetCounterRow />
-      <div className="flex flex-row w-full gap-2">
-        <IncrementButton />
-        <DecrementButton />
-      </div>
-      <p>Counter Value:</p>
-      <div className="flex flex-row w-full gap-2">
-        <EncryptedValue value={count} />
-      </div>
-    </div>
-  );
-};
-
-const SetCounterRow = () => {
-  const [input, setInput] = useState<string>("");
-  const { isPending, writeContractAsync } = useScaffoldWriteContract({ contractName: "FHECounter" });
-
-  const handleSet = useCallback(() => {
-    if (input === "") return;
-
-    const encryptInputAndSet = async () => {
-      const encryptedResult = await cofhejs.encrypt([Encryptable.uint32(input)]);
-
-      if (!encryptedResult.success) {
-        console.error("Failed to encrypt input", encryptedResult.error);
-        notification.error(`Failed to encrypt input: ${encryptedResult.error}`);
-        return;
-      }
-
-      console.log("encryptedResult", encryptedResult);
-
-      writeContractAsync({ functionName: "set", args: [encryptedResult.data[0]] });
-    };
-
-    encryptInputAndSet();
-  }, [input, writeContractAsync]);
-
-  return (
-    <div className="flex flex-row w-full gap-2">
-      <div className="flex-1">
-        <IntegerInput value={input} onChange={setInput} variant={IntegerVariant.UINT32} disableMultiplyBy1e18 />
-      </div>
-      <div
-        className={`btn btn-primary ${isPending ? "btn-disabled" : ""} ${input === "" ? "btn-disabled" : ""}`}
-        onClick={handleSet}
-      >
-        {isPending && <span className="loading loading-spinner loading-xs"></span>}
-        Set
-      </div>
-    </div>
-  );
-};
-
-const IncrementButton = () => {
-  const { isPending, writeContractAsync } = useScaffoldWriteContract({ contractName: "FHECounter" });
-
-  return (
-    <div
-      className={`btn btn-primary flex-1 ${isPending ? "btn-disabled" : ""}`}
-      onClick={() => writeContractAsync({ functionName: "increment" })}
-    >
-      {isPending && <span className="loading loading-spinner loading-xs"></span>}
-      Increment
-    </div>
-  );
-};
-
-const DecrementButton = () => {
-  const { isPending, writeContractAsync } = useScaffoldWriteContract({ contractName: "FHECounter" });
-
-  return (
-    <div
-      className={`btn btn-primary flex-1 ${isPending ? "btn-disabled" : ""}`}
-      onClick={() => writeContractAsync({ functionName: "decrement" })}
-    >
-      {isPending && <span className="loading loading-spinner loading-xs"></span>}
-      Decrement
-    </div>
-  );
-};
-
-const EncryptedValue = ({ value }: { value: bigint | undefined }) => {
-  const { onDecrypt, result } = useDecryptValue(FheTypes.Uint32, value);
-
-  if (result.state === "no-data") {
-    return <p className="w-full">No data</p>;
-  }
-
-  if (result.state === "encrypted") {
-    return (
-      <div className="btn btn-primary" onClick={onDecrypt}>
-        Decrypt
-      </div>
-    );
-  }
-
-  if (result.state === "pending") {
-    return <p className="w-full">Decrypting...</p>;
-  }
-
-  if (result.state === "error") {
-    return <p className="w-full">Error: {result.error}</p>;
-  }
-
-  return <p className="w-full">Decrypted: {result.value}</p>;
 };
 
 export default Home;
