@@ -7,7 +7,7 @@ import { GenericContractsDeclaration } from "~~/utils/scaffold-eth/contract";
 const deployedContracts = {
   31337: {
     FHECounter: {
-      address: "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
+      address: "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853",
       abi: [
         {
           inputs: [],
@@ -43,19 +43,6 @@ const deployedContracts = {
         },
         {
           inputs: [],
-          name: "ONE",
-          outputs: [
-            {
-              internalType: "euint32",
-              name: "",
-              type: "uint256",
-            },
-          ],
-          stateMutability: "view",
-          type: "function",
-        },
-        {
-          inputs: [],
           name: "count",
           outputs: [
             {
@@ -76,42 +63,9 @@ const deployedContracts = {
         },
         {
           inputs: [],
-          name: "decryptCounter",
-          outputs: [],
-          stateMutability: "nonpayable",
-          type: "function",
-        },
-        {
-          inputs: [],
-          name: "getDecryptedValue",
-          outputs: [
-            {
-              internalType: "uint256",
-              name: "",
-              type: "uint256",
-            },
-          ],
-          stateMutability: "view",
-          type: "function",
-        },
-        {
-          inputs: [],
           name: "increment",
           outputs: [],
           stateMutability: "nonpayable",
-          type: "function",
-        },
-        {
-          inputs: [],
-          name: "isInitialized",
-          outputs: [
-            {
-              internalType: "ebool",
-              name: "",
-              type: "uint256",
-            },
-          ],
-          stateMutability: "view",
           type: "function",
         },
         {
@@ -144,7 +98,7 @@ const deployedContracts = {
               type: "tuple",
             },
           ],
-          name: "reset",
+          name: "set",
           outputs: [],
           stateMutability: "nonpayable",
           type: "function",
