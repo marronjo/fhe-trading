@@ -20,6 +20,12 @@ Changes from the default scaffold-eth:
 
 - NEXT: Add sepolia and arbitrum sepolia to target networks (these are the networks supported by CoFHE) in addition to hardhat (supported by cofhe-mock-contracts)
 - NEXT: Add `cofhejs` to dependencies
+- NEXT: Create `useCofhe` hooks
+  - `useInitializeCofhejs` - Initializes cofhejs on page load and when connected account or connected chain changes
+  - `useCofhejsInitialized` - Returns whether cofhejs has been successfully initialized
+  - `useCofhejsAccount` - Returns the initialized account of cofhejs (this will match `useAccount` from wagmi, but only after initialization is successful)
+- NEXT: Create `useDecryptValue` hook for decrypting encrypted FHE values
+- NEXT: Create `EncryptedValueCard` as a reusable decryption helper and display
 
 ### Scaffold-ETH 2
 
