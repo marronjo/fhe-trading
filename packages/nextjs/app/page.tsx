@@ -88,10 +88,13 @@ const SetCounterRow = () => {
   const { isPending /* , writeContractAsync */ } = useScaffoldWriteContract({ contractName: "FHECounter" });
 
   const encryptValue = useCallback(() => {
+    if (input === "") return;
+
     const encrypt = async () => {
       const encrypted = await cofhejs.encrypt([Encryptable.uint32(input)]);
       console.log(encrypted);
     };
+
     encrypt();
   }, [input]);
 
@@ -100,7 +103,10 @@ const SetCounterRow = () => {
       <div className="flex-1">
         <IntegerInput value={input} onChange={setInput} variant={IntegerVariant.UINT32} disableMultiplyBy1e18 />
       </div>
-      <div className={`btn btn-primary ${isPending ? "btn-disabled" : ""}`} onClick={encryptValue}>
+      <div
+        className={`btn btn-primary ${isPending ? "btn-disabled" : ""} ${input === "" ? "btn-disabled" : ""}`}
+        onClick={encryptValue}
+      >
         {isPending && <span className="loading loading-spinner loading-xs"></span>}
         Set
       </div>
