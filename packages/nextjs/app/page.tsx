@@ -7,6 +7,7 @@ import type { NextPage } from "next";
 import { useAccount } from "wagmi";
 import { Address, IntegerInput, IntegerVariant } from "~~/components/scaffold-eth";
 import { useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
+import { notification } from "~~/utils/scaffold-eth";
 
 const Home: NextPage = () => {
   const { address: connectedAddress } = useAccount();
@@ -85,18 +86,27 @@ const FHECounter = () => {
 
 const SetCounterRow = () => {
   const [input, setInput] = useState<string>("");
-  const { isPending /* , writeContractAsync */ } = useScaffoldWriteContract({ contractName: "FHECounter" });
+  const { isPending, writeContractAsync } = useScaffoldWriteContract({ contractName: "FHECounter" });
 
-  const encryptValue = useCallback(() => {
+  const handleSet = useCallback(() => {
     if (input === "") return;
 
-    const encrypt = async () => {
-      const encrypted = await cofhejs.encrypt([Encryptable.uint32(input)]);
-      console.log(encrypted);
+    const encryptInputAndSet = async () => {
+      const encryptedResult = await cofhejs.encrypt([Encryptable.uint32(input)]);
+
+      if (!encryptedResult.success) {
+        console.error("Failed to encrypt input", encryptedResult.error);
+        notification.error(`Failed to encrypt input: ${encryptedResult.error}`);
+        return;
+      }
+
+      console.log("encryptedResult", encryptedResult);
+
+      writeContractAsync({ functionName: "set", args: [encryptedResult.data[0]] });
     };
 
-    encrypt();
-  }, [input]);
+    encryptInputAndSet();
+  }, [input, writeContractAsync]);
 
   return (
     <div className="flex flex-row w-full gap-2">
@@ -105,7 +115,7 @@ const SetCounterRow = () => {
       </div>
       <div
         className={`btn btn-primary ${isPending ? "btn-disabled" : ""} ${input === "" ? "btn-disabled" : ""}`}
-        onClick={encryptValue}
+        onClick={handleSet}
       >
         {isPending && <span className="loading loading-spinner loading-xs"></span>}
         Set
