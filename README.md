@@ -18,6 +18,8 @@ Changes from the default scaffold-eth:
 - HH: Add tests for `FHECounter.sol` at `test/FHECounter.test.ts`.
 - HH: Added a deployment step that deploys Multicall3 for usage in Mock environment with viem `useReadContracts` (see NEXT corresponding step)
 
+- NEXT: Add sepolia and arbitrum sepolia to target networks (these are the networks supported by CoFHE) in addition to hardhat (supported by cofhe-mock-contracts)
+
 ### Scaffold-ETH 2
 
 <h4 align="center">
