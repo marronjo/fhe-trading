@@ -1,4 +1,20 @@
-# 🏗 Scaffold-ETH 2
+# 🏗 COFHE Scaffold-ETH 2
+
+Scaffold-ETH 2 (Now With CoFHE)
+
+### CoFHE: https://cofhe-docs.fhenix.zone/docs/devdocs/overview
+
+Changes from the default scaffold-eth:
+
+- HH: Imports the following packages:
+  - `@fhenixprotocol/cofhe-contracts` - Package with `FHE.sol` in it, which enables FHE computation on-chain.
+  - `@fhenixprotocol/cofhe-mock-contracts` - Mocks the full CoFHE coprocessor in a local environment for easier testing and local development.
+  - `cofhe-hardhat-plugin` - Deploys the mock contracts to the hardhat node and tests. Exposes utility functions to help with testing. See HH tests.
+  - `cofhejs` - Primary connection to the CoFHE coprocessor. Exposes functions like `encrypt` and `unseal`. Manages access permits.
+- HH: Import `cofhe-hardhat-plugin` in `hardhat.config.ts`.
+- HH: Bump solidity version to "0.8.25" and evmVersion to "cancun" in `hardhat.config.ts`
+
+### Scaffold-ETH 2
 
 <h4 align="center">
   <a href="https://docs.scaffoldeth.io">Documentation</a> |
@@ -65,7 +81,6 @@ Run smart contract test with `yarn hardhat:test`
 - Edit your smart contracts in `packages/hardhat/contracts`
 - Edit your frontend homepage at `packages/nextjs/app/page.tsx`. For guidance on [routing](https://nextjs.org/docs/app/building-your-application/routing/defining-routes) and configuring [pages/layouts](https://nextjs.org/docs/app/building-your-application/routing/pages-and-layouts) checkout the Next.js documentation.
 - Edit your deployment scripts in `packages/hardhat/deploy`
-
 
 ## Documentation
 

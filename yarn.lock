@@ -1252,6 +1252,30 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@fhenixprotocol/cofhe-contracts@npm:0.0.13":
+  version: 0.0.13
+  resolution: "@fhenixprotocol/cofhe-contracts@npm:0.0.13"
+  dependencies:
+    "@openzeppelin/contracts": ^5.0.0
+  checksum: 3ca016a09df5a55d60e13e236553bfc3650c78dce1c583d22d8da329891e24cf8f0b91877032fcc1f74e6c59379bac71aa9e749561dd247f3e519313a5422e15
+  languageName: node
+  linkType: hard
+
+"@fhenixprotocol/cofhe-mock-contracts@npm:^0.2.1-alpha.0, @fhenixprotocol/cofhe-mock-contracts@npm:^0.2.1-alpha.4":
+  version: 0.2.1-alpha.4
+  resolution: "@fhenixprotocol/cofhe-mock-contracts@npm:0.2.1-alpha.4"
+  dependencies:
+    "@fhenixprotocol/cofhe-contracts": 0.0.13
+    "@openzeppelin/contracts": ^5.0.0
+    "@openzeppelin/contracts-upgradeable": ^5.0.0
+  peerDependencies:
+    "@fhenixprotocol/cofhe-contracts": 0.0.13
+    "@openzeppelin/contracts": ^5.0.0
+    "@openzeppelin/contracts-upgradeable": ^5.0.0
+  checksum: d72bad87a27cfe6dffcd3344bf3368fc5583d3b3e6f432598f4795492d2792ea2fb15f61a9b460dacbab1bec9f4d0e80293e74041f45f1db8a688da7fea44c22
+  languageName: node
+  linkType: hard
+
 "@heroicons/react@npm:~2.1.5":
   version: 2.1.5
   resolution: "@heroicons/react@npm:2.1.5"
@@ -2973,10 +2997,26 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@openzeppelin/contracts@npm:~5.0.2":
-  version: 5.0.2
-  resolution: "@openzeppelin/contracts@npm:5.0.2"
-  checksum: 0cce6fc284bd1d89e2a447027832a62f1356b44ee31088899453e10349a63a62df2f07da63d76e4c41aad9c86b96b650b2b6fc85439ef276850dda1170a047fd
+"@openzeppelin/contracts-upgradeable@npm:^5.0.0":
+  version: 5.3.0
+  resolution: "@openzeppelin/contracts-upgradeable@npm:5.3.0"
+  peerDependencies:
+    "@openzeppelin/contracts": 5.3.0
+  checksum: edc42740c5174a79ff82d99aeb88d4e40e7c3d8aa461c866760d4ba3ab2dcf22182cfd51b8ce950a89c673e66095c760c8e09143cce19217a485774450f150e7
+  languageName: node
+  linkType: hard
+
+"@openzeppelin/contracts@npm:^5.0.0":
+  version: 5.3.0
+  resolution: "@openzeppelin/contracts@npm:5.3.0"
+  checksum: 1d1629c42d170e070c112779c33b3b81c133995695271bc62a696160b598b56455a3c56d1f976a42ee3dd426c4ad984451b1752139f2b7897c9e1ba56c1947da
+  languageName: node
+  linkType: hard
+
+"@openzeppelin/contracts@npm:~5.2.0":
+  version: 5.2.0
+  resolution: "@openzeppelin/contracts@npm:5.2.0"
+  checksum: badff8c3be46b099c331e90ba27f75e36f7af681279952cf0b123c7448bc53cd541ef447de8e6ebc38e7b29aed8f17dacf0756aac5891eed03fe96a0a4eba1a0
   languageName: node
   linkType: hard
 
@@ -3370,12 +3410,14 @@ __metadata:
   dependencies:
     "@ethersproject/abi": ~5.7.0
     "@ethersproject/providers": ~5.7.2
+    "@fhenixprotocol/cofhe-contracts": 0.0.13
+    "@fhenixprotocol/cofhe-mock-contracts": ^0.2.1-alpha.0
     "@inquirer/password": ^4.0.2
     "@nomicfoundation/hardhat-chai-matchers": ~2.0.7
     "@nomicfoundation/hardhat-ethers": ~3.0.8
     "@nomicfoundation/hardhat-network-helpers": ~1.0.11
     "@nomicfoundation/hardhat-verify": ~2.0.10
-    "@openzeppelin/contracts": ~5.0.2
+    "@openzeppelin/contracts": ~5.2.0
     "@typechain/ethers-v5": ~11.1.2
     "@typechain/ethers-v6": ~0.5.1
     "@typechain/hardhat": ~9.1.0
@@ -3386,6 +3428,8 @@ __metadata:
     "@typescript-eslint/eslint-plugin": ~8.27.0
     "@typescript-eslint/parser": ~8.27.0
     chai: ~4.5.0
+    cofhe-hardhat-plugin: ^0.2.1-alpha.7
+    cofhejs: ^0.2.1-alpha.1
     dotenv: ~16.4.5
     envfile: ~7.1.0
     eslint: ~9.23.0
@@ -4146,7 +4190,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^20.10.7":
+"@types/node@npm:^20.0.0, @types/node@npm:^20.10.7":
   version: 20.17.57
   resolution: "@types/node@npm:20.17.57"
   dependencies:
@@ -5992,7 +6036,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:^1.6.7":
+"axios@npm:^1.6.5, axios@npm:^1.6.7":
   version: 1.9.0
   resolution: "axios@npm:1.9.0"
   dependencies:
@@ -6828,6 +6872,44 @@ __metadata:
   version: 10.1.1
   resolution: "code-block-writer@npm:10.1.1"
   checksum: e048037acbcbda19fca62a3a63e4a64226ea6b5dc0fad7632d34a88c1165b29a357e5e19f0497811e9911472e824ab85f68176f40e439da87e051908956eb47c
+  languageName: node
+  linkType: hard
+
+"cofhe-hardhat-plugin@npm:^0.2.1-alpha.7":
+  version: 0.2.1-alpha.7
+  resolution: "cofhe-hardhat-plugin@npm:0.2.1-alpha.7"
+  dependencies:
+    "@fhenixprotocol/cofhe-contracts": 0.0.13
+    "@fhenixprotocol/cofhe-mock-contracts": ^0.2.1-alpha.4
+    "@openzeppelin/contracts": ^5.0.0
+    "@openzeppelin/contracts-upgradeable": ^5.0.0
+    axios: ^1.6.5
+    chalk: ^4.1.2
+    fast-glob: ^3.3.2
+  peerDependencies:
+    "@nomicfoundation/hardhat-ethers": ^3.0.5
+    cofhejs: ^0.2.1-alpha.2
+    ethers: ^6.10.0
+    hardhat: ^2.11.0
+  checksum: ba70f19e7dcc2ddedc808767ef822cd35e126380efcd556f44ab45a4d8fc4d621c90ad3d1b9fcc5167caed873026849b17fa68820ce8ab02590d968847abef8f
+  languageName: node
+  linkType: hard
+
+"cofhejs@npm:^0.2.1-alpha.1":
+  version: 0.2.1-alpha.2
+  resolution: "cofhejs@npm:0.2.1-alpha.2"
+  dependencies:
+    "@types/node": ^20.0.0
+    idb-keyval: ^6.2.1
+    immer: ^10.1.1
+    node-tfhe: 0.11.1
+    tfhe: 0.11.1
+    tweetnacl: ^1.0.3
+    tweetnacl-util: ^0.15.1
+    type-fest: ^4.26.1
+    zod: ^3.23.8
+    zustand: ^5.0.1
+  checksum: 45102d4181dcc21bc66762226404954e0b469b06bbfa59ada591afe45f781cddd85cddc6c20f3f998bb1d4803bd258c03780b0297551c930a03f46a2aa098041
   languageName: node
   linkType: hard
 
@@ -10179,6 +10261,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"immer@npm:^10.1.1":
+  version: 10.1.1
+  resolution: "immer@npm:10.1.1"
+  checksum: 07c67970b7d22aded73607193d84861bf786f07d47f7d7c98bb10016c7a88f6654ad78ae1e220b3c623695b133aabbf24f5eb8d9e8060cff11e89ccd81c9c10b
+  languageName: node
+  linkType: hard
+
 "immutable@npm:^4.0.0-rc.12":
   version: 4.3.7
   resolution: "immutable@npm:4.3.7"
@@ -12644,6 +12733,13 @@ __metadata:
   version: 2.0.19
   resolution: "node-releases@npm:2.0.19"
   checksum: 917dbced519f48c6289a44830a0ca6dc944c3ee9243c468ebd8515a41c97c8b2c256edb7f3f750416bc37952cc9608684e6483c7b6c6f39f6bd8d86c52cfe658
+  languageName: node
+  linkType: hard
+
+"node-tfhe@npm:0.11.1":
+  version: 0.11.1
+  resolution: "node-tfhe@npm:0.11.1"
+  checksum: d2152d8cdee822a97334d9a2e44a1751cb6495d914be069d1479aececded12097ee24aabb04f30d50cbc2138f1d09ddecb57c9158f411bb6d093bfdf7b03f451
   languageName: node
   linkType: hard
 
@@ -15780,6 +15876,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"tfhe@npm:0.11.1":
+  version: 0.11.1
+  resolution: "tfhe@npm:0.11.1"
+  checksum: a47a5bf43b576bc5ac462af197726c64c7e5f36c8009e7818d75798273e1bc61f87cb910139dd7fa476d57bfee4575421543991f14d7863f70ef14e70976b72c
+  languageName: node
+  linkType: hard
+
 "thread-stream@npm:^0.15.1":
   version: 0.15.2
   resolution: "thread-stream@npm:0.15.2"
@@ -17499,7 +17602,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod@npm:^3.22.4":
+"zod@npm:^3.22.4, zod@npm:^3.23.8":
   version: 3.25.48
   resolution: "zod@npm:3.25.48"
   checksum: 01d87ee2dc25c7236f803703d232edfd97072a468ef72e9a597fd118f71ee257f83def6acb684c1077e4b600c43d3245345aa3d514efa3db3be26b0db9ebfea1
@@ -17527,7 +17630,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zustand@npm:~5.0.0":
+"zustand@npm:^5.0.1, zustand@npm:~5.0.0":
   version: 5.0.5
   resolution: "zustand@npm:5.0.5"
   peerDependencies:
