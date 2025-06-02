@@ -5,22 +5,14 @@ import "@fhenixprotocol/cofhe-contracts/FHE.sol";
 
 contract FHECounter {
     euint32 public count;
-    euint32 public ONE;
-    ebool public isInitialized;
+    euint32 private ONE;
 
     constructor() {
         ONE = FHE.asEuint32(1);
         count = FHE.asEuint32(0);
 
-        isInitialized = FHE.asEbool(false);
-        isInitialized = FHE.asEbool(true);
-
-        FHE.allowThis(count);
+        FHE.allowGlobal(count);
         FHE.allowThis(ONE);
-
-        FHE.gte(count, ONE);
-
-        FHE.allowSender(count);
     }
 
     function increment() public {
@@ -35,20 +27,9 @@ contract FHECounter {
         FHE.allowSender(count);
     }
 
-    function reset(InEuint32 memory value) public {
+    function set(InEuint32 memory value) public {
         count = FHE.asEuint32(value);
         FHE.allowThis(count);
         FHE.allowSender(count);
-    }
-
-    function decryptCounter() public {
-        FHE.decrypt(count);
-    }
-
-    function getDecryptedValue() external view returns (uint256) {
-        (uint256 value, bool decrypted) = FHE.getDecryptResultSafe(count);
-        if (!decrypted) revert("Value is not ready");
-
-        return value;
     }
 }

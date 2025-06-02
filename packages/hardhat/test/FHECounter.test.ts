@@ -68,7 +68,7 @@ describe("Counter", function () {
       const [encryptedInput] = await hre.cofhe.expectResultSuccess(cofhejs.encrypt([Encryptable.uint32(5n)] as const));
       await hre.cofhe.mocks.expectPlaintext(encryptedInput.ctHash, 5n);
 
-      await counter.connect(bob).reset(encryptedInput);
+      await counter.connect(bob).set(encryptedInput);
 
       const count = await counter.count();
       await hre.cofhe.mocks.expectPlaintext(count, 5n);
