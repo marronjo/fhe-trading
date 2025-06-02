@@ -1,10 +1,11 @@
 "use client";
 
+import { useCallback, useState } from "react";
 import { useDecryptValue } from "./useDecrypt";
-import { FheTypes } from "cofhejs/web";
+import { Encryptable, FheTypes, cofhejs } from "cofhejs/web";
 import type { NextPage } from "next";
 import { useAccount } from "wagmi";
-import { Address } from "~~/components/scaffold-eth";
+import { Address, IntegerInput, IntegerVariant } from "~~/components/scaffold-eth";
 import { useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
 
 const Home: NextPage = () => {
@@ -66,13 +67,43 @@ const FHECounter = () => {
   });
 
   return (
-    <div className="flex flex-col bg-base-100 px-10 py-10 text-center items-center rounded-3xl">
-      <p className="font-bold w-full">FHECounter</p>
-      <div className="flex flex-row gap-2">
+    <div className="flex flex-col bg-base-100 px-10 py-10 text-center items-start rounded-3xl gap-2">
+      <p className="font-bold">FHECounter</p>
+      <p>Counter Actions:</p>
+      <SetCounterRow />
+      <div className="flex flex-row w-full gap-2">
         <IncrementButton />
         <DecrementButton />
       </div>
-      <EncryptedValue value={count} />
+      <p>Counter Value:</p>
+      <div className="flex flex-row w-full gap-2">
+        <EncryptedValue value={count} />
+      </div>
+    </div>
+  );
+};
+
+const SetCounterRow = () => {
+  const [input, setInput] = useState<string>("");
+  const { isPending /* , writeContractAsync */ } = useScaffoldWriteContract({ contractName: "FHECounter" });
+
+  const encryptValue = useCallback(() => {
+    const encrypt = async () => {
+      const encrypted = await cofhejs.encrypt([Encryptable.uint32(input)]);
+      console.log(encrypted);
+    };
+    encrypt();
+  }, [input]);
+
+  return (
+    <div className="flex flex-row w-full gap-2">
+      <div className="flex-1">
+        <IntegerInput value={input} onChange={setInput} variant={IntegerVariant.UINT32} disableMultiplyBy1e18 />
+      </div>
+      <div className={`btn btn-primary ${isPending ? "btn-disabled" : ""}`} onClick={encryptValue}>
+        {isPending && <span className="loading loading-spinner loading-xs"></span>}
+        Set
+      </div>
     </div>
   );
 };
@@ -82,11 +113,11 @@ const IncrementButton = () => {
 
   return (
     <div
-      className={`btn btn-primary ${isPending ? "btn-disabled" : ""}`}
+      className={`btn btn-primary flex-1 ${isPending ? "btn-disabled" : ""}`}
       onClick={() => writeContractAsync({ functionName: "increment" })}
     >
       {isPending && <span className="loading loading-spinner loading-xs"></span>}
-      {isPending ? "Pending..." : "Increment"}
+      Increment
     </div>
   );
 };
@@ -96,11 +127,11 @@ const DecrementButton = () => {
 
   return (
     <div
-      className={`btn btn-primary ${isPending ? "btn-disabled" : ""}`}
+      className={`btn btn-primary flex-1 ${isPending ? "btn-disabled" : ""}`}
       onClick={() => writeContractAsync({ functionName: "decrement" })}
     >
       {isPending && <span className="loading loading-spinner loading-xs"></span>}
-      {isPending ? "Pending..." : "Decrement"}
+      Decrement
     </div>
   );
 };
