@@ -8,6 +8,10 @@ import { useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaf
 import { notification } from "~~/utils/scaffold-eth";
 
 export const FHECounterComponent = () => {
+  // The data returned from the smart contract is encrypted as an `euint32`
+  // In order to display the value, we need to decrypt it.
+  // `EncryptedValueCard` is a component that displays the encrypted value,
+  // which uses the `useDecryptValue` hook to decrypt the value.
   const { data: count } = useScaffoldReadContract({
     contractName: "FHECounter",
     functionName: "count",
@@ -15,7 +19,7 @@ export const FHECounterComponent = () => {
 
   return (
     <div className="flex flex-col bg-base-100 px-10 py-10 text-center items-start rounded-3xl gap-2">
-      <p className="font-bold">FHECounter</p>
+      <p className="font-bold">FHECounter.sol</p>
       <p>Counter Actions:</p>
       <SetCounterRow />
       <div className="flex flex-row w-full gap-2">
@@ -30,6 +34,12 @@ export const FHECounterComponent = () => {
   );
 };
 
+/**
+ * This component gives an example of how to encrypt an input.
+ *
+ * The input is encrypted using the cofhejs library and then
+ * the encrypted value is sent to the smart contract.
+ */
 const SetCounterRow = () => {
   const [input, setInput] = useState<string>("");
   const { isPending, writeContractAsync } = useScaffoldWriteContract({ contractName: "FHECounter" });
