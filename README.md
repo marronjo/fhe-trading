@@ -13,6 +13,10 @@ Changes from the default scaffold-eth:
   - `cofhejs` - Primary connection to the CoFHE coprocessor. Exposes functions like `encrypt` and `unseal`. Manages access permits.
 - HH: Import `cofhe-hardhat-plugin` in `hardhat.config.ts`.
 - HH: Bump solidity version to "0.8.25" and evmVersion to "cancun" in `hardhat.config.ts`
+- HH: Update `tsconfig` with "target" = "es2020", "module" and "moduleResolution" = "Node16" (required for cofhejs)
+- HH: Replace default "YourContract.sol" with "FHECounter.sol" which uses the `FHE.sol` dependency to allow on-chain FHE computation.
+- HH: Add tests for `FHECounter.sol` at `test/FHECounter.test.ts`.
+- HH: Added a deployment step that deploys Multicall3 for usage in Mock environment with viem `useReadContracts` (see NEXT corresponding step)
 
 ### Scaffold-ETH 2
 
