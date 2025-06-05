@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { PermitOptions, cofhejs, permitStore } from "cofhejs/web";
 import * as chains from "viem/chains";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
-import { useStore } from "zustand";
+import { create, useStore } from "zustand";
 import scaffoldConfig from "~~/scaffold.config";
 import { notification } from "~~/utils/scaffold-eth";
 
@@ -54,7 +54,7 @@ export function useInitializeCofhejs() {
           // Whether to generate a permit for the connected account during the initialization process
           // Recommended to set to false, and then call `cofhejs.generatePermit()` when the user is ready to generate a permit
           // !! if **true** - will generate a permit immediately on page load !!
-          generatePermit: true,
+          generatePermit: false,
           // Hard coded signer for submitting encrypted inputs
           // This is only used in the mock environment to submit the mock encrypted inputs so that they can be used in FHE ops.
           // This has no effect in the mainnet or testnet environments.
@@ -101,6 +101,20 @@ export const useCofhejsStatus = () => {
   return useMemo(() => ({ chainId, account, initialized }), [chainId, account, initialized]);
 };
 
+// Permit Modal
+
+interface CofhejsPermitModalStore {
+  generatePermitModalOpen: boolean;
+  generatePermitModalCallback?: () => void;
+  setGeneratePermitModalOpen: (open: boolean, callback?: () => void) => void;
+}
+
+export const useCofhejsModalStore = create<CofhejsPermitModalStore>(set => ({
+  generatePermitModalOpen: false,
+  setGeneratePermitModalOpen: (open, callback) =>
+    set({ generatePermitModalOpen: open, generatePermitModalCallback: callback }),
+}));
+
 // Permits
 
 type PermitStoreState = ReturnType<typeof permitStore.store.getState>;
@@ -127,6 +141,14 @@ export const useCofhejsActivePermit = () => {
       return null;
     }
   }, [activePermitHash]);
+};
+
+export const useCofhejsIsActivePermitValid = () => {
+  const permit = useCofhejsActivePermit();
+  return useMemo(() => {
+    if (!permit) return false;
+    return permit.isValid();
+  }, [permit]);
 };
 
 export const useCofhejsAllPermitHashes = () => {

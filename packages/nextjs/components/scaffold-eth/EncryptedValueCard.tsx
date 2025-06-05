@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useCallback } from "react";
 import { FheTypes } from "cofhejs/web";
 import { LockClosedIcon, LockOpenIcon, ShieldCheckIcon } from "@heroicons/react/24/outline";
+import { useCofhejsInitialized, useCofhejsIsActivePermitValid, useCofhejsModalStore } from "~~/app/useCofhejs";
 import { useDecryptValue } from "~~/app/useDecrypt";
 
 interface EncryptedZoneProps {
@@ -51,14 +52,32 @@ interface EncryptedValueProps<T extends FheTypes> {
 }
 
 export const EncryptedValue = <T extends FheTypes>({ label, fheType, ctHash }: EncryptedValueProps<T>) => {
+  const cofhejsInitialized = useCofhejsInitialized();
+  const isPermitValid = useCofhejsIsActivePermitValid();
+  const setGeneratePermitModalOpen = useCofhejsModalStore(state => state.setGeneratePermitModalOpen);
   const { onDecrypt, result } = useDecryptValue(fheType, ctHash);
+
+  const handleDecrypt = useCallback(() => {
+    // If permit is invalid or missing, open the generate permit modal
+    // After the user generates a new permit, the callback will be called to decrypt the value
+    if (!isPermitValid) {
+      setGeneratePermitModalOpen(true, onDecrypt);
+      return;
+    }
+
+    // Permit is valid, decrypt the value
+    onDecrypt();
+  }, [isPermitValid, onDecrypt, setGeneratePermitModalOpen]);
 
   return (
     <div className="flex flex-row items-center justify-start p-1 pl-4 gap-2 flex-1 rounded-3xl bg-primary-content/5 min-h-12">
       <span className="text-xs font-semibold">{label}</span>
       {result.state === "no-data" && <span className="text-xs font-semibold flex-1 italic">No data</span>}
       {result.state === "encrypted" && (
-        <span className="btn btn-md btn-cofhe flex-1" onClick={onDecrypt}>
+        <span
+          className={`btn btn-md btn-cofhe flex-1 ${cofhejsInitialized ? "" : "btn-disabled"}`}
+          onClick={handleDecrypt}
+        >
           <LockClosedIcon className="w-5 h-5" aria-hidden="true" />
           <span className="flex flex-1 items-center justify-center">
             <span>Encrypted</span>

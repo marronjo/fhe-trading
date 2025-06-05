@@ -10,6 +10,7 @@ import { WagmiProvider } from "wagmi";
 import { useInitializeCofhejs } from "~~/app/useCofhejs";
 import { Footer } from "~~/components/Footer";
 import { Header } from "~~/components/Header";
+import { CofhejsPermitModal } from "~~/components/cofhe/CofhejsPermitModal";
 import { BlockieAvatar } from "~~/components/scaffold-eth";
 import { useInitializeNativeCurrencyPrice } from "~~/hooks/scaffold-eth";
 import { wagmiConfig } from "~~/services/web3/wagmiConfig";
@@ -26,6 +27,7 @@ const ScaffoldEthApp = ({ children }: { children: React.ReactNode }) => {
         <Footer />
       </div>
       <Toaster />
+      <CofhejsPermitModal />
     </>
   );
 };
