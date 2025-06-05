@@ -1,8 +1,9 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
 import { useEffect } from "react";
-import { cofhejs } from "cofhejs/web";
+import { PermitOptions, cofhejs, permitStore } from "cofhejs/web";
 import * as chains from "viem/chains";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
+import { useStore } from "zustand";
 import scaffoldConfig from "~~/scaffold.config";
 import { notification } from "~~/utils/scaffold-eth";
 
@@ -76,44 +77,106 @@ export function useInitializeCofhejs() {
   }, [walletClient, publicClient, isChainSupported]);
 }
 
+type CofhejsStoreState = ReturnType<typeof cofhejs.store.getState>;
+
+const useCofhejsStore = <T>(selector: (state: CofhejsStoreState) => T) => useStore(cofhejs.store, selector);
+
 export const useCofhejsAccount = () => {
-  const [account, setAccount] = useState<string | null>(null);
+  return useCofhejsStore(state => state.account);
+};
 
-  useEffect(() => {
-    const unsubscribe = cofhejs.store.subscribe(state => {
-      setAccount(state.account);
-    });
-
-    // Initial state
-    setAccount(cofhejs.store.getState().account);
-
-    return () => {
-      unsubscribe();
-    };
-  }, []);
-
-  return account;
+export const useCofhejsChainId = () => {
+  return useCofhejsStore(state => state.chainId);
 };
 
 export const useCofhejsInitialized = () => {
-  const [initialized, setInitialized] = useState(false);
+  return useCofhejsStore(state => state.fheKeysInitialized && state.providerInitialized && state.signerInitialized);
+};
 
-  useEffect(() => {
-    const unsubscribe = cofhejs.store.subscribe(state => {
-      setInitialized(state.fheKeysInitialized && state.providerInitialized && state.signerInitialized);
-    });
+export const useCofhejsStatus = () => {
+  const chainId = useCofhejsChainId();
+  const account = useCofhejsAccount();
+  const initialized = useCofhejsInitialized();
 
-    // Initial state
-    setInitialized(
-      cofhejs.store.getState().fheKeysInitialized &&
-        cofhejs.store.getState().providerInitialized &&
-        cofhejs.store.getState().signerInitialized,
-    );
+  return useMemo(() => ({ chainId, account, initialized }), [chainId, account, initialized]);
+};
 
-    return () => {
-      unsubscribe();
-    };
-  }, []);
+// Permits
 
-  return initialized;
+type PermitStoreState = ReturnType<typeof permitStore.store.getState>;
+
+export const useCofhejsPermitStore = <T>(selector: (state: PermitStoreState) => T) =>
+  useStore(permitStore.store, selector);
+
+export const useCofhejsActivePermitHash = () => {
+  const { chainId, account, initialized } = useCofhejsStatus();
+  return useCofhejsPermitStore(state => {
+    if (!initialized || !chainId || !account) return undefined;
+    return state.activePermitHash?.[chainId]?.[account];
+  });
+};
+
+export const useCofhejsActivePermit = () => {
+  const activePermitHash = useCofhejsActivePermitHash();
+  return useMemo(() => {
+    const permitResult = cofhejs.getPermit(activePermitHash ?? undefined);
+    if (!permitResult) return null;
+    if (permitResult.success) {
+      return permitResult.data;
+    } else {
+      return null;
+    }
+  }, [activePermitHash]);
+};
+
+export const useCofhejsAllPermitHashes = () => {
+  const { chainId, account, initialized } = useCofhejsStatus();
+  return useCofhejsPermitStore(state => {
+    if (!initialized || !chainId || !account) return [];
+    return Object.keys(state.permits?.[chainId]?.[account] ?? {});
+  });
+};
+
+export const useCofhejsAllPermits = () => {
+  const permitHashes = useCofhejsAllPermitHashes();
+  return useMemo(() => {
+    return permitHashes.map(hash => cofhejs.getPermit(hash));
+  }, [permitHashes]);
+};
+
+export const useCofhejsCreatePermit = () => {
+  const { chainId, account, initialized } = useCofhejsStatus();
+  return useCallback(
+    async (permit?: PermitOptions) => {
+      if (!initialized || !chainId || !account) return;
+      const permitResult = await cofhejs.createPermit(permit);
+      if (permitResult.success) {
+        notification.success("Permit created");
+      } else {
+        notification.error(permitResult.error.message ?? String(permitResult.error));
+      }
+      return permitResult;
+    },
+    [chainId, account, initialized],
+  );
+};
+
+export const useCofhejsDeletePermit = () => {
+  const { chainId, account, initialized } = useCofhejsStatus();
+  return useCallback(
+    async (permitHash: string) => {
+      if (!initialized || !chainId || !account) return;
+      permitStore.removePermit(chainId, account, permitHash);
+      notification.success("Permit removed");
+    },
+    [chainId, account, initialized],
+  );
+};
+
+export const useCofhejsPermitIssuer = () => {
+  const permit = useCofhejsActivePermit();
+  return useMemo(() => {
+    if (!permit) return null;
+    return permit.issuer;
+  }, [permit]);
 };
