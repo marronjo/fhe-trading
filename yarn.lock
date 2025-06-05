@@ -3527,7 +3527,7 @@ __metadata:
     "@typescript-eslint/parser": ~8.27.0
     chai: ~4.5.0
     cofhe-hardhat-plugin: ^0.2.1-alpha.7
-    cofhejs: ^0.2.1-alpha.2
+    cofhejs: ^0.2.1-alpha.3
     dotenv: ~16.4.5
     envfile: ~7.1.0
     eslint: ~9.23.0
@@ -3566,7 +3566,7 @@ __metadata:
     bgipfs: ~0.0.12
     blo: ~1.2.0
     burner-connector: 0.0.14
-    cofhejs: 0.2.1-alpha.2
+    cofhejs: 0.2.1-alpha.3
     daisyui: 5.0.9
     eslint: ~9.23.0
     eslint-config-next: ~15.2.3
@@ -7003,9 +7003,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cofhejs@npm:0.2.1-alpha.2, cofhejs@npm:^0.2.1-alpha.2":
-  version: 0.2.1-alpha.2
-  resolution: "cofhejs@npm:0.2.1-alpha.2"
+"cofhejs@npm:0.2.1-alpha.3, cofhejs@npm:^0.2.1-alpha.3":
+  version: 0.2.1-alpha.3
+  resolution: "cofhejs@npm:0.2.1-alpha.3"
   dependencies:
     "@types/node": ^20.0.0
     idb-keyval: ^6.2.1
@@ -7017,7 +7017,7 @@ __metadata:
     type-fest: ^4.26.1
     zod: ^3.23.8
     zustand: ^5.0.1
-  checksum: 45102d4181dcc21bc66762226404954e0b469b06bbfa59ada591afe45f781cddd85cddc6c20f3f998bb1d4803bd258c03780b0297551c930a03f46a2aa098041
+  checksum: 682fd33010a76b187c33b773512d24f8860cc26878485b5fad059960416547373fae8091f6d5c53447efba5b202d3e5d33221a651bbc85035b37119afa9cc061
   languageName: node
   linkType: hard
 

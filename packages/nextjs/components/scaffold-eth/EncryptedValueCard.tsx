@@ -19,13 +19,13 @@ export const EncryptedValueCard = <T extends FheTypes>({ label, fheType, ctHash 
           <span className="text-xs font-semibold">{label}</span>
           {result.state === "no-data" && <span className="text-xs font-semibold flex-1 italic">No data</span>}
           {result.state === "encrypted" && (
-            <span className="btn btn-md btn-primary flex-1" onClick={onDecrypt}>
+            <span className="btn btn-md btn-cofhe flex-1" onClick={onDecrypt}>
               <LockClosedIcon className="w-5 h-5" aria-hidden="true" />
               Encrypted
             </span>
           )}
           {result.state === "pending" && (
-            <span className="btn btn-md btn-primary btn-disabled flex-1">
+            <span className="btn btn-md btn-cofhe btn-disabled flex-1">
               <div className="loading-spinner loading-sm" />
               Decrypting
             </span>

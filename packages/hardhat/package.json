@@ -52,7 +52,7 @@
     "@typescript-eslint/parser": "~8.27.0",
     "chai": "~4.5.0",
     "cofhe-hardhat-plugin": "^0.2.1-alpha.7",
-    "cofhejs": "^0.2.1-alpha.2",
+    "cofhejs": "^0.2.1-alpha.3",
     "eslint": "~9.23.0",
     "eslint-config-prettier": "~10.1.1",
     "eslint-plugin-prettier": "~5.2.4",

@@ -36,6 +36,12 @@
   --radius-field: 9999rem;
   --radius-box: 1rem;
   --tt-tailw: 6px;
+
+  /* COFHE */
+  --color-cofhe-primary: #8b5cf6;
+  --color-cofhe-primary-content: #ffffff;
+  --color-cofhe-secondary: #7c3aed;
+  --color-cofhe-secondary-content: #4c1d95;
 }
 
 @plugin "daisyui/theme" {
@@ -63,6 +69,12 @@
 
   --tt-tailw: 6px;
   --tt-bg: var(--color-primary);
+
+  /* COFHE */
+  --color-cofhe-primary: #7c3aed;
+  --color-cofhe-primary-content: #ffffff;
+  --color-cofhe-secondary: #8b5cf6;
+  --color-cofhe-secondary-content: #4c1d95;
 }
 
 /*
@@ -118,4 +130,21 @@
 
 .link:hover {
   opacity: 80%;
+}
+
+/* COFHE */
+.btn-cofhe {
+  --btn-color: var(--color-cofhe-primary);
+  --btn-fg: var(--color-cofhe-primary-content);
+  box-shadow: 0 0 15px 2px rgba(139, 92, 246, 0.4);
+  transition: all 0.3s ease;
+  background: linear-gradient(135deg, var(--color-cofhe-primary) 0%, var(--color-cofhe-secondary) 100%);
+  background-size: 200% 200%;
+  background-position: 0% 0%;
+  border: none;
+}
+
+.btn-cofhe:hover {
+  box-shadow: 0 0 20px 4px rgba(139, 92, 246, 0.6);
+  background-position: 100% 100%;
 }
