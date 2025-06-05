@@ -25,7 +25,8 @@ Changes from the default scaffold-eth:
   - `useCofhejsInitialized` - Returns whether cofhejs has been successfully initialized
   - `useCofhejsAccount` - Returns the initialized account of cofhejs (this will match `useAccount` from wagmi, but only after initialization is successful)
 - NEXT: Create `useDecryptValue` hook for decrypting encrypted FHE values
-- NEXT: Create `EncryptedValueCard` as a reusable decryption helper and display
+- NEXT: Create `EncryptedValue` as a reusable decryption helper and display. This will request a permit generation if the permit doesn't exist or is otherwise invalid.
+- NEXT: Create `CofhejsPermitModal` which indicates to the user that they will need to sign to generate a new permit to access their encrypted data
 
 ### Scaffold-ETH 2
 
