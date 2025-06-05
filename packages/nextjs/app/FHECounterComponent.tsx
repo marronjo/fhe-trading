@@ -1,9 +1,10 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { useCofhejsActivePermit } from "./useCofhejs";
 import { Encryptable, FheTypes, cofhejs } from "cofhejs/web";
 import { IntegerInput, IntegerVariant } from "~~/components/scaffold-eth";
-import { EncryptedValueCard } from "~~/components/scaffold-eth/EncryptedValueCard";
+import { EncryptedValue } from "~~/components/scaffold-eth/EncryptedValueCard";
 import { useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
 import { notification } from "~~/utils/scaffold-eth";
 
@@ -17,6 +18,9 @@ export const FHECounterComponent = () => {
     functionName: "count",
   });
 
+  const activePermit = useCofhejsActivePermit();
+  console.log("activePermit", activePermit);
+
   return (
     <div className="flex flex-col bg-base-100 px-10 py-10 text-center items-start rounded-3xl gap-2">
       <p className="font-bold">FHECounter.sol</p>
@@ -28,7 +32,7 @@ export const FHECounterComponent = () => {
       </div>
       <p>Counter Value:</p>
       <div className="flex flex-row w-full gap-2">
-        <EncryptedValueCard fheType={FheTypes.Uint32} ctHash={count} label="Count" />
+        <EncryptedValue fheType={FheTypes.Uint32} ctHash={count} label="Count" />
       </div>
     </div>
   );

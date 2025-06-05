@@ -38,7 +38,7 @@
   --tt-tailw: 6px;
 
   /* COFHE */
-  --color-cofhe-primary: #8b5cf6;
+  --color-cofhe-primary: #8885f2;
   --color-cofhe-primary-content: #ffffff;
   --color-cofhe-secondary: #7c3aed;
   --color-cofhe-secondary-content: #4c1d95;
@@ -71,9 +71,9 @@
   --tt-bg: var(--color-primary);
 
   /* COFHE */
-  --color-cofhe-primary: #7c3aed;
+  --color-cofhe-primary: #a583f4;
   --color-cofhe-primary-content: #ffffff;
-  --color-cofhe-secondary: #8b5cf6;
+  --color-cofhe-secondary: #7c3aed;
   --color-cofhe-secondary-content: #4c1d95;
 }
 
