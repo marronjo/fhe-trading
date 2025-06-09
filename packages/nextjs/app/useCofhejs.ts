@@ -4,6 +4,7 @@ import { PermitOptions, cofhejs, permitStore } from "cofhejs/web";
 import * as chains from "viem/chains";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 import { create, useStore } from "zustand";
+import { useShallow } from "zustand/react/shallow";
 import scaffoldConfig from "~~/scaffold.config";
 import { notification } from "~~/utils/scaffold-eth";
 
@@ -119,8 +120,9 @@ export const useCofhejsModalStore = create<CofhejsPermitModalStore>(set => ({
 
 type PermitStoreState = ReturnType<typeof permitStore.store.getState>;
 
-export const useCofhejsPermitStore = <T>(selector: (state: PermitStoreState) => T) =>
-  useStore(permitStore.store, selector);
+export const useCofhejsPermitStore = <T>(selector: (state: PermitStoreState) => T) => {
+  return useStore(permitStore.store, selector);
+};
 
 export const useCofhejsActivePermitHash = () => {
   const { chainId, account, initialized } = useCofhejsStatus();
@@ -153,10 +155,17 @@ export const useCofhejsIsActivePermitValid = () => {
 
 export const useCofhejsAllPermitHashes = () => {
   const { chainId, account, initialized } = useCofhejsStatus();
-  return useCofhejsPermitStore(state => {
-    if (!initialized || !chainId || !account) return [];
-    return Object.keys(state.permits?.[chainId]?.[account] ?? {});
-  });
+  return useCofhejsPermitStore(
+    useShallow(state => {
+      if (!initialized || !chainId || !account) return [];
+      return (
+        Object.entries(state.permits?.[chainId]?.[account] ?? {})
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          .filter(([_, permit]) => permit !== undefined)
+          .map(([hash]) => hash)
+      );
+    }),
+  );
 };
 
 export const useCofhejsAllPermits = () => {
@@ -183,13 +192,25 @@ export const useCofhejsCreatePermit = () => {
   );
 };
 
-export const useCofhejsDeletePermit = () => {
+export const useCofhejsRemovePermit = () => {
   const { chainId, account, initialized } = useCofhejsStatus();
   return useCallback(
     async (permitHash: string) => {
       if (!initialized || !chainId || !account) return;
       permitStore.removePermit(chainId, account, permitHash);
       notification.success("Permit removed");
+    },
+    [chainId, account, initialized],
+  );
+};
+
+export const useCofhejsSetActivePermit = () => {
+  const { chainId, account, initialized } = useCofhejsStatus();
+  return useCallback(
+    async (permitHash: string) => {
+      if (!initialized || !chainId || !account) return;
+      permitStore.setActivePermitHash(chainId, account, permitHash);
+      notification.success("Active permit updated");
     },
     [chainId, account, initialized],
   );

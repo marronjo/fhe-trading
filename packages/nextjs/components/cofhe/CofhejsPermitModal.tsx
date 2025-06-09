@@ -1,19 +1,49 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
+import { zeroAddress } from "viem";
 import { ShieldCheckIcon } from "@heroicons/react/24/solid";
-import { useCofhejsCreatePermit, useCofhejsModalStore } from "~~/app/useCofhejs";
+import { useCofhejsAccount, useCofhejsCreatePermit, useCofhejsModalStore } from "~~/app/useCofhejs";
+import { AddressInput } from "~~/components/scaffold-eth";
+
+type ExpirationOption = "1 day" | "1 week" | "1 month";
+const shareablePermits = false;
 
 export const CofhejsPermitModal = () => {
   const { generatePermitModalOpen, generatePermitModalCallback, setGeneratePermitModalOpen } = useCofhejsModalStore();
   const createPermit = useCofhejsCreatePermit();
+  const account = useCofhejsAccount();
+  const [expiration, setExpiration] = useState<ExpirationOption>("1 day");
+  const [recipient, setRecipient] = useState<string>("");
+  const [name, setName] = useState<string>("");
+  const [showRecipientInput, setShowRecipientInput] = useState(false);
 
   const handleClose = useCallback(() => {
     setGeneratePermitModalOpen(false);
+    // Reset state when closing
+    setExpiration("1 day");
+    setRecipient("");
+    setName("");
+    setShowRecipientInput(false);
   }, [setGeneratePermitModalOpen]);
 
   const handleGeneratePermit = useCallback(async () => {
-    const result = await createPermit();
+    const type = recipient ? "sharing" : "self";
+
+    const permitName = name.length > 0 ? name.slice(0, 24) : undefined;
+
+    const expirationDate = new Date();
+    expirationDate.setDate(expirationDate.getDate() + (expiration === "1 day" ? 1 : expiration === "1 week" ? 7 : 30));
+
+    const recipientAddress = recipient ? recipient : zeroAddress;
+
+    const result = await createPermit({
+      type,
+      name: permitName,
+      issuer: account,
+      expiration: Math.round(expirationDate.getTime() / 1000),
+      recipient: recipientAddress,
+    });
     if (result?.success) {
       handleClose();
       // If there was a callback provided when opening the modal, execute it
@@ -21,7 +51,7 @@ export const CofhejsPermitModal = () => {
         generatePermitModalCallback();
       }
     }
-  }, [createPermit, generatePermitModalCallback, handleClose]);
+  }, [createPermit, generatePermitModalCallback, handleClose, account, recipient, expiration, name]);
 
   return (
     <dialog className={`modal ${generatePermitModalOpen ? "modal-open" : ""}`}>
@@ -40,6 +70,69 @@ export const CofhejsPermitModal = () => {
           Generating a permit will open your wallet to sign a message (EIP712) which verifies your ownership of the
           connected wallet.
         </p>
+
+        <div className="flex flex-col gap-4 mb-6">
+          {/* Name */}
+          <div className="flex flex-col gap-2">
+            <div className="flex flex-row items-center justify-between gap-2">
+              <label className="text-sm font-semibold">
+                Name <span className="font-normal">(optional - used for display purposes)</span>
+              </label>
+              <span className="text-xs text-gray-500">{name.length}/24</span>
+            </div>
+            <input
+              type="text"
+              placeholder="Enter permit name"
+              className="input input-bordered w-full"
+              value={name}
+              onChange={e => setName(e.target.value.slice(0, 24))}
+              maxLength={24}
+            />
+          </div>
+
+          {/* Expiration */}
+          <div className="flex flex-row items-center justify-between gap-2">
+            <label className="text-sm font-semibold">Expiration</label>
+            <div className="flex gap-2">
+              {(["1 day", "1 week", "1 month"] as const).map(option => (
+                <div
+                  key={option}
+                  className={`btn btn-sm ${expiration === option ? "btn-cofhe" : "btn-ghost"}`}
+                  onClick={() => setExpiration(option)}
+                >
+                  {option}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Recipient */}
+          {shareablePermits && (
+            <div className="flex flex-col gap-2">
+              <div className="flex flex-row items-center justify-between gap-2">
+                <label className="text-sm font-semibold">Recipient</label>
+                <div className="flex gap-2">
+                  <div
+                    className={`btn btn-sm ${!showRecipientInput ? "btn-cofhe" : "btn-ghost"}`}
+                    onClick={() => setShowRecipientInput(false)}
+                  >
+                    None
+                  </div>
+                  <div
+                    className={`btn btn-sm ${showRecipientInput ? "btn-cofhe" : "btn-ghost"}`}
+                    onClick={() => setShowRecipientInput(true)}
+                  >
+                    Enter address
+                  </div>
+                </div>
+              </div>
+              {showRecipientInput && (
+                <AddressInput value={recipient} onChange={setRecipient} placeholder="Enter recipient address" />
+              )}
+            </div>
+          )}
+        </div>
+
         <div className="flex justify-end gap-4">
           <button className="btn btn-ghost" onClick={handleClose}>
             Cancel

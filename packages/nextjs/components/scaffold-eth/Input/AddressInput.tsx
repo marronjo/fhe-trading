@@ -82,7 +82,7 @@ export const AddressInput = ({ value, name, placeholder, onChange, disabled }: C
     <InputBase<Address>
       name={name}
       placeholder={placeholder}
-      error={ensAddress === null}
+      error={ensAddress === null || !isAddress(value)}
       value={value as Address}
       onChange={onChange}
       disabled={isEnsAddressLoading || isEnsNameLoading || disabled}
