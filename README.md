@@ -6,28 +6,32 @@ Scaffold-ETH 2 (Now With CoFHE)
 
 Changes from the default scaffold-eth:
 
-- HH: Imports the following packages:
+### Hardhat (HH) Changes
+
+- Import the following packages:
   - `@fhenixprotocol/cofhe-contracts` - Package with `FHE.sol` in it, which enables FHE computation on-chain.
   - `@fhenixprotocol/cofhe-mock-contracts` - Mocks the full CoFHE coprocessor in a local environment for easier testing and local development.
   - `cofhe-hardhat-plugin` - Deploys the mock contracts to the hardhat node and tests. Exposes utility functions to help with testing. See HH tests.
   - `cofhejs` - Primary connection to the CoFHE coprocessor. Exposes functions like `encrypt` and `unseal`. Manages access permits.
-- HH: Import `cofhe-hardhat-plugin` in `hardhat.config.ts`.
-- HH: Bump solidity version to "0.8.25" and evmVersion to "cancun" in `hardhat.config.ts`
-- HH: Update `tsconfig` with "target" = "es2020", "module" and "moduleResolution" = "Node16" (required for cofhejs)
-- HH: Replace default "YourContract.sol" with "FHECounter.sol" which uses the `FHE.sol` dependency to allow on-chain FHE computation.
-- HH: Add tests for `FHECounter.sol` at `test/FHECounter.test.ts`.
-- HH: Added a deployment step that deploys Multicall3 for usage in Mock environment with viem `useReadContracts` (see NEXT corresponding step)
+- Import `cofhe-hardhat-plugin` in `hardhat.config.ts`
+- Bump solidity version to "0.8.25" and evmVersion to "cancun" in `hardhat.config.ts`
+- Update `tsconfig` with "target" = "es2020", "module" and "moduleResolution" = "Node16" (required for cofhejs)
+- Replace default "YourContract.sol" with "FHECounter.sol" which uses the `FHE.sol` dependency to allow on-chain FHE computation
+- Add tests for `FHECounter.sol` at `test/FHECounter.test.ts`
+- Add a deployment step that deploys Multicall3 for usage in Mock environment with viem `useReadContracts`
 
-- NEXT: Add sepolia and arbitrum sepolia to target networks (these are the networks supported by CoFHE) in addition to hardhat (supported by cofhe-mock-contracts)
-- NEXT: Add `cofhejs` to dependencies
-- NEXT: Create `useCofhe` hooks
+### Next.js (NEXT) Changes
+
+- Add sepolia and arbitrum sepolia to target networks (these are the networks supported by CoFHE) in addition to hardhat (supported by cofhe-mock-contracts)
+- Add `cofhejs` to dependencies
+- Create `useCofhe` hooks:
   - `useInitializeCofhejs` - Initializes cofhejs on page load and when connected account or connected chain changes
   - `useCofhejsInitialized` - Returns whether cofhejs has been successfully initialized
   - `useCofhejsAccount` - Returns the initialized account of cofhejs (this will match `useAccount` from wagmi, but only after initialization is successful)
-- NEXT: Create `useDecryptValue` hook for decrypting encrypted FHE values
-- NEXT: Create `EncryptedValue` as a reusable decryption helper and display. This will request a permit generation if the permit doesn't exist or is otherwise invalid.
-- NEXT: Create `CofhejsPermitModal` which indicates to the user that they will need to sign to generate a new permit to access their encrypted data and gives some basic options
-- NEXT: Create `CofhejsPortal` with button in header bar. The portal displays the cofhejs initialization status and allows users to interact directly with the permit system (creating / deleting / selecting permits).
+- Create `useDecryptValue` hook for decrypting encrypted FHE values
+- Create `EncryptedValue` as a reusable decryption helper and display. This will request a permit generation if the permit doesn't exist or is otherwise invalid
+- Create `CofhejsPermitModal` which indicates to the user that they will need to sign to generate a new permit to access their encrypted data and gives some basic options
+- Create `CofhejsPortal` with button in header bar. The portal displays the cofhejs initialization status and allows users to interact directly with the permit system (creating / deleting / selecting permits)
 
 ### Scaffold-ETH 2
 
