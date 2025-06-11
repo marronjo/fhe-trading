@@ -3526,8 +3526,8 @@ __metadata:
     "@typescript-eslint/eslint-plugin": ~8.27.0
     "@typescript-eslint/parser": ~8.27.0
     chai: ~4.5.0
-    cofhe-hardhat-plugin: ^0.2.1-alpha.7
-    cofhejs: ^0.2.1-alpha.3
+    cofhe-hardhat-plugin: ^0.2.1-alpha.8
+    cofhejs: ^0.2.1-alpha.4
     dotenv: ~16.4.5
     envfile: ~7.1.0
     eslint: ~9.23.0
@@ -3566,7 +3566,7 @@ __metadata:
     bgipfs: ~0.0.12
     blo: ~1.2.0
     burner-connector: 0.0.14
-    cofhejs: 0.2.1-alpha.3
+    cofhejs: 0.2.1-alpha.4
     daisyui: 5.0.9
     eslint: ~9.23.0
     eslint-config-next: ~15.2.3
@@ -6983,9 +6983,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cofhe-hardhat-plugin@npm:^0.2.1-alpha.7":
-  version: 0.2.1-alpha.7
-  resolution: "cofhe-hardhat-plugin@npm:0.2.1-alpha.7"
+"cofhe-hardhat-plugin@npm:^0.2.1-alpha.8":
+  version: 0.2.1-alpha.8
+  resolution: "cofhe-hardhat-plugin@npm:0.2.1-alpha.8"
   dependencies:
     "@fhenixprotocol/cofhe-contracts": 0.0.13
     "@fhenixprotocol/cofhe-mock-contracts": ^0.2.1-alpha.4
@@ -6996,16 +6996,16 @@ __metadata:
     fast-glob: ^3.3.2
   peerDependencies:
     "@nomicfoundation/hardhat-ethers": ^3.0.5
-    cofhejs: ^0.2.1-alpha.2
+    cofhejs: ^0.2.1-alpha.4
     ethers: ^6.10.0
     hardhat: ^2.11.0
-  checksum: ba70f19e7dcc2ddedc808767ef822cd35e126380efcd556f44ab45a4d8fc4d621c90ad3d1b9fcc5167caed873026849b17fa68820ce8ab02590d968847abef8f
+  checksum: e4fe75f9711c185b5f5f0b3b965c0dda1e4de105a3bd13243227b06d0f74eb84bffd5bd3cf5ffc9957f93e160e33051c1f3bd409dd3f720d4188180ab14240e3
   languageName: node
   linkType: hard
 
-"cofhejs@npm:0.2.1-alpha.3, cofhejs@npm:^0.2.1-alpha.3":
-  version: 0.2.1-alpha.3
-  resolution: "cofhejs@npm:0.2.1-alpha.3"
+"cofhejs@npm:0.2.1-alpha.4, cofhejs@npm:^0.2.1-alpha.4":
+  version: 0.2.1-alpha.4
+  resolution: "cofhejs@npm:0.2.1-alpha.4"
   dependencies:
     "@types/node": ^20.0.0
     idb-keyval: ^6.2.1
@@ -7017,7 +7017,7 @@ __metadata:
     type-fest: ^4.26.1
     zod: ^3.23.8
     zustand: ^5.0.1
-  checksum: 682fd33010a76b187c33b773512d24f8860cc26878485b5fad059960416547373fae8091f6d5c53447efba5b202d3e5d33221a651bbc85035b37119afa9cc061
+  checksum: 30d72c460e0981147da1465dfba292906d1de4a5b2a2ab1fa5d701a9a98af1bac432afdce075e6941359f8891c25b02da19ae1deaa6e0dcf92545e7b8333f4d9
   languageName: node
   linkType: hard
 
