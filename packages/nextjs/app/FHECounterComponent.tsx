@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { useCofhejsActivePermit } from "./useCofhejs";
 import { Encryptable, FheTypes, cofhejs } from "cofhejs/web";
 import { IntegerInput, IntegerVariant } from "~~/components/scaffold-eth";
 import { EncryptedValue } from "~~/components/scaffold-eth/EncryptedValueCard";
@@ -17,9 +16,6 @@ export const FHECounterComponent = () => {
     contractName: "FHECounter",
     functionName: "count",
   });
-
-  const activePermit = useCofhejsActivePermit();
-  console.log("activePermit", activePermit);
 
   return (
     <div className="flex flex-col bg-base-100 px-10 py-10 text-center items-start rounded-3xl gap-2">
@@ -47,12 +43,15 @@ export const FHECounterComponent = () => {
 const SetCounterRow = () => {
   const [input, setInput] = useState<string>("");
   const { isPending, writeContractAsync } = useScaffoldWriteContract({ contractName: "FHECounter" });
+  const [isEncrypting, setIsEncrypting] = useState(false);
 
   const handleSet = useCallback(() => {
     if (input === "") return;
 
     const encryptInputAndSet = async () => {
+      setIsEncrypting(true);
       const encryptedResult = await cofhejs.encrypt([Encryptable.uint32(input)]);
+      setIsEncrypting(false);
 
       if (!encryptedResult.success) {
         console.error("Failed to encrypt input", encryptedResult.error);
@@ -60,13 +59,13 @@ const SetCounterRow = () => {
         return;
       }
 
-      console.log("encryptedResult", encryptedResult);
-
       writeContractAsync({ functionName: "set", args: [encryptedResult.data[0]] });
     };
 
     encryptInputAndSet();
   }, [input, writeContractAsync]);
+
+  const pending = isPending || isEncrypting;
 
   return (
     <div className="flex flex-row w-full gap-2">
@@ -74,10 +73,10 @@ const SetCounterRow = () => {
         <IntegerInput value={input} onChange={setInput} variant={IntegerVariant.UINT32} disableMultiplyBy1e18 />
       </div>
       <div
-        className={`btn btn-primary ${isPending ? "btn-disabled" : ""} ${input === "" ? "btn-disabled" : ""}`}
+        className={`btn btn-primary ${pending ? "btn-disabled" : ""} ${input === "" ? "btn-disabled" : ""}`}
         onClick={handleSet}
       >
-        {isPending && <span className="loading loading-spinner loading-xs"></span>}
+        {pending && <span className="loading loading-spinner loading-xs"></span>}
         Set
       </div>
     </div>
