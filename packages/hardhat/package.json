@@ -11,6 +11,7 @@
     "clean": "hardhat clean",
     "compile": "hardhat compile",
     "deploy": "ts-node scripts/runHardhatDeployWithPK.ts",
+    "deploy:local": "ts-node scripts/runHardhatDeployWithPK.ts --network localhost",
     "flatten": "hardhat flatten",
     "fork": "MAINNET_FORKING_ENABLED=true hardhat node --network hardhat --no-deploy",
     "format": "prettier --write './**/*.(ts|sol)'",
