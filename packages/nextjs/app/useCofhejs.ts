@@ -1,6 +1,8 @@
 import { useCallback, useMemo } from "react";
 import { useEffect } from "react";
 import { PermitOptions, cofhejs, permitStore } from "cofhejs/web";
+import { PublicClient, WalletClient, createWalletClient, http } from "viem";
+import { PrivateKeyAccount, privateKeyToAccount } from "viem/accounts";
 import * as chains from "viem/chains";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 import { create, useStore } from "zustand";
@@ -20,6 +22,20 @@ const ChainEnvironments = {
   // Hardhat
   [chains.hardhat.id]: "MOCK",
 } as const;
+
+// ZKV SIGNER
+
+const zkvSignerPrivateKey = "0x6C8D7F768A6BB4AAFE85E8A2F5A9680355239C7E14646ED62B044E39DE154512";
+function createWalletClientFromPrivateKey(publicClient: PublicClient, privateKey: `0x${string}`): WalletClient {
+  const account: PrivateKeyAccount = privateKeyToAccount(privateKey);
+  return createWalletClient({
+    account,
+    chain: publicClient.chain,
+    transport: http(publicClient.transport.url),
+  });
+}
+
+// COFHEJS
 
 export const useIsConnectedChainSupported = () => {
   const { chainId } = useAccount();
@@ -47,6 +63,8 @@ export function useInitializeCofhejs() {
       const chainId = publicClient?.chain.id;
       const environment = ChainEnvironments[chainId as keyof typeof ChainEnvironments] ?? "TESTNET";
 
+      const viemZkvSigner = createWalletClientFromPrivateKey(publicClient, zkvSignerPrivateKey);
+
       try {
         const initializationResult = await cofhejs.initializeWithViem({
           viemClient: publicClient,
@@ -60,6 +78,10 @@ export function useInitializeCofhejs() {
           // This is only used in the mock environment to submit the mock encrypted inputs so that they can be used in FHE ops.
           // This has no effect in the mainnet or testnet environments.
           // TODO: zkvSigner: zkvSigner
+          mockConfig: {
+            decryptDelay: 1000,
+            zkvSigner: viemZkvSigner,
+          },
         });
 
         if (initializationResult.success) {
