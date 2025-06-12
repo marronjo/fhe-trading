@@ -13,6 +13,20 @@ import {
 import { useOutsideClick } from "~~/hooks/scaffold-eth";
 import scaffoldConfig from "~~/scaffold.config";
 
+/**
+ * CoFHE Portal Component
+ *
+ * This component provides a dropdown interface for managing CoFHE permits and viewing system status.
+ * It serves as the main control center for CoFHE operations, allowing users to:
+ * - View initialization status and connection details
+ * - Manage active and stored permits
+ * - Create new permits
+ * - Switch between different permits
+ * - Remove unused permits
+ *
+ * The portal is accessible through a shield icon button in the UI, which opens a dropdown
+ * containing all permit management functionality and system status information.
+ */
 export const CofhejsPortal = () => {
   const { chainId, account, initialized } = useCofhejsStatus();
   const dropdownRef = useRef<HTMLDetailsElement>(null);
@@ -78,6 +92,33 @@ export const CofhejsPortal = () => {
   );
 };
 
+/**
+ * A reusable component for displaying label-value pairs in a consistent format.
+ * Used throughout the portal for displaying various pieces of information.
+ */
+const InfoRow = ({
+  label,
+  value,
+  className,
+  valueClassName,
+}: {
+  label: string;
+  value: string;
+  className?: string;
+  valueClassName?: string;
+}) => {
+  return (
+    <div className={`flex flex-row justify-between items-center text-sm gap-6 ${className}`}>
+      <span className="text-left text-nowrap">{label}</span>
+      <span className={`font-bold text-nowrap text-right ${valueClassName}`}>{value}</span>
+    </div>
+  );
+};
+
+/**
+ * Displays a list of all available permits, excluding the currently active one.
+ * Shows a placeholder message when no permits are available.
+ */
 const AllPermitsList = () => {
   const activePermit = useCofhejsActivePermit();
   const allPermits = useCofhejsAllPermits();
@@ -101,25 +142,18 @@ const AllPermitsList = () => {
   );
 };
 
-const InfoRow = ({
-  label,
-  value,
-  className,
-  valueClassName,
-}: {
-  label: string;
-  value: string;
-  className?: string;
-  valueClassName?: string;
-}) => {
-  return (
-    <div className={`flex flex-row justify-between items-center text-sm gap-6 ${className}`}>
-      <span className="text-left text-nowrap">{label}</span>
-      <span className={`font-bold text-nowrap text-right ${valueClassName}`}>{value}</span>
-    </div>
-  );
-};
-
+/**
+ * Displays detailed information about a single permit and provides controls for managing it.
+ * Shows different options based on whether the permit is currently active or not.
+ *
+ * For active permits:
+ * - Displays a success indicator
+ * - Shows permit details in read-only mode
+ *
+ * For inactive permits:
+ * - Provides options to activate or delete the permit
+ * - Shows the same detailed information as active permits
+ */
 const PermitItem = ({
   permit,
   isActive,

@@ -37,6 +37,11 @@ function createWalletClientFromPrivateKey(publicClient: PublicClient, privateKey
 
 // COFHEJS
 
+/**
+ * Hook to check if the currently connected chain is supported by the application
+ * @returns boolean indicating if the current chain is in the target networks list
+ * Refreshes when chainId changes
+ */
 export const useIsConnectedChainSupported = () => {
   const { chainId } = useAccount();
   return useMemo(
@@ -45,6 +50,11 @@ export const useIsConnectedChainSupported = () => {
   );
 };
 
+/**
+ * Hook to initialize cofhejs with the connected wallet and chain configuration
+ * Handles initialization errors and displays toast notifications on success or error
+ * Refreshes when connected wallet or chain changes
+ */
 export function useInitializeCofhejs() {
   const publicClient = usePublicClient();
   const { data: walletClient } = useWalletClient();
@@ -102,20 +112,44 @@ export function useInitializeCofhejs() {
 
 type CofhejsStoreState = ReturnType<typeof cofhejs.store.getState>;
 
+/**
+ * Hook to access the cofhejs store state (used internally)
+ * @param selector Function to select specific state from the store
+ * @returns Selected state from the cofhejs store
+ */
 const useCofhejsStore = <T>(selector: (state: CofhejsStoreState) => T) => useStore(cofhejs.store, selector);
 
+/**
+ * Hook to get the current account initialized in cofhejs
+ * @returns The current account address or undefined
+ */
 export const useCofhejsAccount = () => {
   return useCofhejsStore(state => state.account);
 };
 
+/**
+ * Hook to get the current chain ID initialized in cofhejs
+ * @returns The current chain ID or undefined
+ */
 export const useCofhejsChainId = () => {
   return useCofhejsStore(state => state.chainId);
 };
 
+/**
+ * Hook to check if cofhejs is fully initialized (FHE keys, provider, and signer)
+ * This is used to determine if the user is ready to use the FHE library
+ * FHE based interactions (encrypt / decrypt) should be disabled until this is true
+ * @returns boolean indicating if FHE keys, provider, and signer are all initialized
+ */
 export const useCofhejsInitialized = () => {
   return useCofhejsStore(state => state.fheKeysInitialized && state.providerInitialized && state.signerInitialized);
 };
 
+/**
+ * Hook to get the complete status of cofhejs
+ * @returns Object containing chainId, account, and initialization status
+ * Refreshes when any of the underlying values change
+ */
 export const useCofhejsStatus = () => {
   const chainId = useCofhejsChainId();
   const account = useCofhejsAccount();
@@ -132,6 +166,10 @@ interface CofhejsPermitModalStore {
   setGeneratePermitModalOpen: (open: boolean, callback?: () => void) => void;
 }
 
+/**
+ * Hook to access the permit modal store
+ * @returns Object containing modal state and control functions
+ */
 export const useCofhejsModalStore = create<CofhejsPermitModalStore>(set => ({
   generatePermitModalOpen: false,
   setGeneratePermitModalOpen: (open, callback) =>
@@ -142,10 +180,20 @@ export const useCofhejsModalStore = create<CofhejsPermitModalStore>(set => ({
 
 type PermitStoreState = ReturnType<typeof permitStore.store.getState>;
 
-export const useCofhejsPermitStore = <T>(selector: (state: PermitStoreState) => T) => {
+/**
+ * Hook to access the permit store state (used internally)
+ * @param selector Function to select specific state from the permit store
+ * @returns Selected state from the permit store
+ */
+const useCofhejsPermitStore = <T>(selector: (state: PermitStoreState) => T) => {
   return useStore(permitStore.store, selector);
 };
 
+/**
+ * Hook to get the active permit hash for the current chain and account
+ * @returns The active permit hash or undefined if not set
+ * Refreshes when chainId, account, or initialization status changes
+ */
 export const useCofhejsActivePermitHash = () => {
   const { chainId, account, initialized } = useCofhejsStatus();
   return useCofhejsPermitStore(state => {
@@ -154,6 +202,11 @@ export const useCofhejsActivePermitHash = () => {
   });
 };
 
+/**
+ * Hook to get the active permit object
+ * @returns The active permit object or null if not found/valid
+ * Refreshes when active permit hash changes
+ */
 export const useCofhejsActivePermit = () => {
   const activePermitHash = useCofhejsActivePermitHash();
   return useMemo(() => {
@@ -167,6 +220,11 @@ export const useCofhejsActivePermit = () => {
   }, [activePermitHash]);
 };
 
+/**
+ * Hook to check if the active permit is valid
+ * @returns boolean indicating if the active permit is valid
+ * Refreshes when permit changes
+ */
 export const useCofhejsIsActivePermitValid = () => {
   const permit = useCofhejsActivePermit();
   return useMemo(() => {
@@ -175,6 +233,11 @@ export const useCofhejsIsActivePermitValid = () => {
   }, [permit]);
 };
 
+/**
+ * Hook to get all permit hashes for the current chain and account
+ * @returns Array of permit hashes
+ * Refreshes when chainId, account, or initialization status changes
+ */
 export const useCofhejsAllPermitHashes = () => {
   const { chainId, account, initialized } = useCofhejsStatus();
   return useCofhejsPermitStore(
@@ -190,6 +253,11 @@ export const useCofhejsAllPermitHashes = () => {
   );
 };
 
+/**
+ * Hook to get all permit objects for the current chain and account
+ * @returns Array of permit objects
+ * Refreshes when permit hashes change
+ */
 export const useCofhejsAllPermits = () => {
   const permitHashes = useCofhejsAllPermitHashes();
   return useMemo(() => {
@@ -197,6 +265,11 @@ export const useCofhejsAllPermits = () => {
   }, [permitHashes]);
 };
 
+/**
+ * Hook to create a new permit
+ * @returns Async function to create a permit with optional options
+ * Refreshes when chainId, account, or initialization status changes
+ */
 export const useCofhejsCreatePermit = () => {
   const { chainId, account, initialized } = useCofhejsStatus();
   return useCallback(
@@ -214,6 +287,11 @@ export const useCofhejsCreatePermit = () => {
   );
 };
 
+/**
+ * Hook to remove a permit
+ * @returns Async function to remove a permit by its hash
+ * Refreshes when chainId, account, or initialization status changes
+ */
 export const useCofhejsRemovePermit = () => {
   const { chainId, account, initialized } = useCofhejsStatus();
   return useCallback(
@@ -226,6 +304,11 @@ export const useCofhejsRemovePermit = () => {
   );
 };
 
+/**
+ * Hook to select the active permit
+ * @returns Async function to set the active permit by its hash
+ * Refreshes when chainId, account, or initialization status changes
+ */
 export const useCofhejsSetActivePermit = () => {
   const { chainId, account, initialized } = useCofhejsStatus();
   return useCallback(
@@ -238,6 +321,11 @@ export const useCofhejsSetActivePermit = () => {
   );
 };
 
+/**
+ * Hook to get the issuer of the active permit
+ * @returns The permit issuer address or null if no active permit
+ * Refreshes when active permit changes
+ */
 export const useCofhejsPermitIssuer = () => {
   const permit = useCofhejsActivePermit();
   return useMemo(() => {

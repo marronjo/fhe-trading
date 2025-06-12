@@ -108,6 +108,12 @@ const initialDecryptionResult = <T extends FheTypes>(
   };
 };
 
+/**
+ * Hook to decrypt a value using cofhejs
+ * @param fheType - The type of the value to decrypt
+ * @param ctHash - The hash of the encrypted value
+ * @returns Object containing a function to decrypt the value and the result of the decryption
+ */
 export const useDecryptValue = <T extends FheTypes>(
   fheType: T,
   ctHash: bigint | null | undefined,

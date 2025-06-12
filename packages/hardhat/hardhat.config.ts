@@ -59,6 +59,7 @@ const config: HardhatUserConfig = {
         enabled: process.env.MAINNET_FORKING_ENABLED === "true",
       },
       mining: {
+        auto: true,
         interval: 2000,
       },
     },

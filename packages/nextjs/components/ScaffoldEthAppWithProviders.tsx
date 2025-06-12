@@ -17,6 +17,21 @@ import { wagmiConfig } from "~~/services/web3/wagmiConfig";
 
 const ScaffoldEthApp = ({ children }: { children: React.ReactNode }) => {
   useInitializeNativeCurrencyPrice();
+
+  /**
+   * CoFHE Initialization
+   *
+   * The useInitializeCofhejs hook initializes the CoFHE system with the connected wallet and chain configuration.
+   * It performs the following key functions:
+   * - Sets up the FHE environment based on the current network (MAINNET, TESTNET, or MOCK)
+   * - Initializes the FHE keys, provider, and signer
+   * - Configures the wallet client for encrypted operations
+   * - Handles initialization errors with user notifications
+   *
+   * This hook is essential for enabling FHE (Fully Homomorphic Encryption) operations
+   * throughout the application. It automatically refreshes when the connected wallet
+   * or chain changes to maintain proper configuration.
+   */
   useInitializeCofhejs();
 
   return (

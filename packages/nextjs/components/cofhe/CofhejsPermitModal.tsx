@@ -6,6 +6,25 @@ import { ShieldCheckIcon } from "@heroicons/react/24/solid";
 import { useCofhejsAccount, useCofhejsCreatePermit, useCofhejsModalStore } from "~~/app/useCofhejs";
 import { AddressInput } from "~~/components/scaffold-eth";
 
+/**
+ * CoFHE Permit Generation Modal
+ *
+ * This modal allows users to generate cryptographic permits for accessing encrypted data in the CoFHE system.
+ * Permits are required because they provide a secure way to verify identity and control access to sensitive
+ * encrypted data without revealing the underlying data itself.
+ *
+ * The modal provides the following options:
+ * - Name: An optional identifier for the permit (max 24 chars)
+ * - Expiration: How long the permit remains valid (1 day, 1 week (default), or 1 month)
+ * - Recipient: (Currently unsupported) Option to share the permit with another address
+ *
+ * When generated, the permit requires a wallet signature (EIP712) to verify ownership.
+ * This signature serves as proof that the user controls the wallet address associated with the permit.
+ *
+ * This modal will automatically open when a user attempts to decrypt a value in the `EncryptedValue` component.
+ * It will also open if the user clicks the "Generate Permit" button in the `CofhejsPortal` component.
+ */
+
 type ExpirationOption = "1 day" | "1 week" | "1 month";
 const shareablePermits = false;
 

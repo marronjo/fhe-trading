@@ -99,6 +99,20 @@ export const Header = () => {
       <div className="navbar-end grow mr-4">
         <RainbowKitCustomConnectButton />
         {isLocalNetwork && <FaucetButton />}
+
+        {/*
+         * CoFHE Portal Integration
+         *
+         * The CofhejsPortal component is integrated into the header to provide easy access to
+         * CoFHE permit management functionality. It appears as a shield icon button that opens
+         * a dropdown menu containing:
+         * - System initialization status
+         * - Active permit information
+         * - Permit management controls
+         *
+         * This placement ensures the portal is always accessible while using the application,
+         * allowing users to manage their permits and monitor system status from any page.
+         */}
         <CofhejsPortal />
       </div>
     </div>
