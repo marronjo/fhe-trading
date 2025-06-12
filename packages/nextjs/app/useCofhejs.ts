@@ -87,7 +87,6 @@ export function useInitializeCofhejs() {
           // Hard coded signer for submitting encrypted inputs
           // This is only used in the mock environment to submit the mock encrypted inputs so that they can be used in FHE ops.
           // This has no effect in the mainnet or testnet environments.
-          // TODO: zkvSigner: zkvSigner
           mockConfig: {
             decryptDelay: 1000,
             zkvSigner: viemZkvSigner,
