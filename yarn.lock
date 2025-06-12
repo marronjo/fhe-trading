@@ -1274,9 +1274,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@fhenixprotocol/cofhe-mock-contracts@npm:^0.2.1-alpha.4":
-  version: 0.2.1-alpha.4
-  resolution: "@fhenixprotocol/cofhe-mock-contracts@npm:0.2.1-alpha.4"
+"@fhenixprotocol/cofhe-mock-contracts@npm:^0.3.0":
+  version: 0.3.0
+  resolution: "@fhenixprotocol/cofhe-mock-contracts@npm:0.3.0"
   dependencies:
     "@fhenixprotocol/cofhe-contracts": 0.0.13
     "@openzeppelin/contracts": ^5.0.0
@@ -1285,7 +1285,7 @@ __metadata:
     "@fhenixprotocol/cofhe-contracts": 0.0.13
     "@openzeppelin/contracts": ^5.0.0
     "@openzeppelin/contracts-upgradeable": ^5.0.0
-  checksum: d72bad87a27cfe6dffcd3344bf3368fc5583d3b3e6f432598f4795492d2792ea2fb15f61a9b460dacbab1bec9f4d0e80293e74041f45f1db8a688da7fea44c22
+  checksum: c6b2055aae37ccb1100572e111dca31f8d634894efa390bebf79e6ab77d40a38817999c237821b962bdce5a56b5e3bb8f5babd0055ff0f9abee502eccf5d6414
   languageName: node
   linkType: hard
 
@@ -3505,7 +3505,7 @@ __metadata:
     "@ethersproject/abi": ~5.7.0
     "@ethersproject/providers": ~5.7.2
     "@fhenixprotocol/cofhe-contracts": 0.0.13
-    "@fhenixprotocol/cofhe-mock-contracts": ^0.2.1-alpha.4
+    "@fhenixprotocol/cofhe-mock-contracts": ^0.3.0
     "@inquirer/password": ^4.0.2
     "@nomicfoundation/hardhat-chai-matchers": ~2.0.7
     "@nomicfoundation/hardhat-ethers": ~3.0.8
@@ -3526,8 +3526,8 @@ __metadata:
     "@typescript-eslint/eslint-plugin": ~8.27.0
     "@typescript-eslint/parser": ~8.27.0
     chai: ~4.5.0
-    cofhe-hardhat-plugin: ^0.2.1-alpha.8
-    cofhejs: ^0.2.1-alpha.4
+    cofhe-hardhat-plugin: ^0.3.0
+    cofhejs: ^0.3.0
     dotenv: ~16.4.5
     envfile: ~7.1.0
     eslint: ~9.23.0
@@ -3566,7 +3566,7 @@ __metadata:
     bgipfs: ~0.0.12
     blo: ~1.2.0
     burner-connector: 0.0.14
-    cofhejs: 0.2.1-alpha.5
+    cofhejs: ^0.3.0
     daisyui: 5.0.9
     eslint: ~9.23.0
     eslint-config-next: ~15.2.3
@@ -6983,12 +6983,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cofhe-hardhat-plugin@npm:^0.2.1-alpha.8":
-  version: 0.2.1-alpha.8
-  resolution: "cofhe-hardhat-plugin@npm:0.2.1-alpha.8"
+"cofhe-hardhat-plugin@npm:^0.3.0":
+  version: 0.3.0
+  resolution: "cofhe-hardhat-plugin@npm:0.3.0"
   dependencies:
     "@fhenixprotocol/cofhe-contracts": 0.0.13
-    "@fhenixprotocol/cofhe-mock-contracts": ^0.2.1-alpha.4
+    "@fhenixprotocol/cofhe-mock-contracts": ^0.3.0
     "@openzeppelin/contracts": ^5.0.0
     "@openzeppelin/contracts-upgradeable": ^5.0.0
     axios: ^1.6.5
@@ -6996,16 +6996,16 @@ __metadata:
     fast-glob: ^3.3.2
   peerDependencies:
     "@nomicfoundation/hardhat-ethers": ^3.0.5
-    cofhejs: ^0.2.1-alpha.4
+    cofhejs: ^0.3.0
     ethers: ^6.10.0
     hardhat: ^2.11.0
-  checksum: e4fe75f9711c185b5f5f0b3b965c0dda1e4de105a3bd13243227b06d0f74eb84bffd5bd3cf5ffc9957f93e160e33051c1f3bd409dd3f720d4188180ab14240e3
+  checksum: 41be1c82622d7bfebcf056012e61f5d2d314db9dea4e108a09c6c83bf9230924638b7c9419a6b9a0fe5000f16584d299e0823fdab7dc35b8812930ac47ac9366
   languageName: node
   linkType: hard
 
-"cofhejs@npm:0.2.1-alpha.5":
-  version: 0.2.1-alpha.5
-  resolution: "cofhejs@npm:0.2.1-alpha.5"
+"cofhejs@npm:^0.3.0":
+  version: 0.3.0
+  resolution: "cofhejs@npm:0.3.0"
   dependencies:
     "@types/node": ^20.0.0
     idb-keyval: ^6.2.1
@@ -7017,25 +7017,7 @@ __metadata:
     type-fest: ^4.26.1
     zod: ^3.23.8
     zustand: ^5.0.1
-  checksum: ddbcc83615c2aa42771b1b62a573df19f97c7f0f5d1b199ca668f2f78db86fad87e89016ff19928fa731a7d509316d8393d0c18b6d5439f1892e52276c7821a4
-  languageName: node
-  linkType: hard
-
-"cofhejs@npm:^0.2.1-alpha.4":
-  version: 0.2.1-alpha.4
-  resolution: "cofhejs@npm:0.2.1-alpha.4"
-  dependencies:
-    "@types/node": ^20.0.0
-    idb-keyval: ^6.2.1
-    immer: ^10.1.1
-    node-tfhe: 0.11.1
-    tfhe: 0.11.1
-    tweetnacl: ^1.0.3
-    tweetnacl-util: ^0.15.1
-    type-fest: ^4.26.1
-    zod: ^3.23.8
-    zustand: ^5.0.1
-  checksum: 30d72c460e0981147da1465dfba292906d1de4a5b2a2ab1fa5d701a9a98af1bac432afdce075e6941359f8891c25b02da19ae1deaa6e0dcf92545e7b8333f4d9
+  checksum: bc7efa0e664afe7478e01815ee714c5dca70eeb45aba4b1899a700acff2facb1a7024135c28e1de73e579f003b851dcf22ed5083ec8b5b3fb1cee425fe60fe67
   languageName: node
   linkType: hard
 
