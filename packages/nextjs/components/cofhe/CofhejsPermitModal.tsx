@@ -13,7 +13,7 @@ export const CofhejsPermitModal = () => {
   const { generatePermitModalOpen, generatePermitModalCallback, setGeneratePermitModalOpen } = useCofhejsModalStore();
   const createPermit = useCofhejsCreatePermit();
   const account = useCofhejsAccount();
-  const [expiration, setExpiration] = useState<ExpirationOption>("1 day");
+  const [expiration, setExpiration] = useState<ExpirationOption>("1 week");
   const [recipient, setRecipient] = useState<string>("");
   const [name, setName] = useState<string>("");
   const [showRecipientInput, setShowRecipientInput] = useState(false);
@@ -21,7 +21,7 @@ export const CofhejsPermitModal = () => {
   const handleClose = useCallback(() => {
     setGeneratePermitModalOpen(false);
     // Reset state when closing
-    setExpiration("1 day");
+    setExpiration("1 week");
     setRecipient("");
     setName("");
     setShowRecipientInput(false);

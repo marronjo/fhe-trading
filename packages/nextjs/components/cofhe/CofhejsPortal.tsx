@@ -17,7 +17,7 @@ export const CofhejsPortal = () => {
   const { chainId, account, initialized } = useCofhejsStatus();
   const dropdownRef = useRef<HTMLDetailsElement>(null);
   const activePermit = useCofhejsActivePermit();
-  const allPermits = useCofhejsAllPermits();
+
   const setGeneratePermitModalOpen = useCofhejsModalStore(state => state.setGeneratePermitModalOpen);
   const removePermit = useCofhejsRemovePermit();
 
@@ -65,18 +65,7 @@ export const CofhejsPortal = () => {
         <div className="flex flex-col gap-1 mt-2">
           <div className="menu-title text-xs">Permits</div>
           {activePermit && <PermitItem key="active" permit={activePermit} isActive={true} onRemove={removePermit} />}
-          {allPermits.length > 0 ? (
-            <div className="flex flex-col gap-1 mt-1">
-              {allPermits.map(({ data: permit, success }, index) => {
-                if (!success || !permit || permit.getHash() === activePermit?.getHash()) return null;
-                return <PermitItem key={index} permit={permit} isActive={false} onRemove={removePermit} />;
-              })}
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center gap-1 bg-base-300/30 py-6 rounded-lg">
-              <span className="text-base-content/50 text-sm">None</span>
-            </div>
-          )}
+          <AllPermitsList />
           <div
             className={`btn btn-sm btn-cofhe mt-2 w-full ${!initialized && "btn-disabled"}`}
             onClick={handleCreatePermit}
@@ -86,6 +75,29 @@ export const CofhejsPortal = () => {
         </div>
       </div>
     </details>
+  );
+};
+
+const AllPermitsList = () => {
+  const activePermit = useCofhejsActivePermit();
+  const allPermits = useCofhejsAllPermits();
+  const removePermit = useCofhejsRemovePermit();
+
+  if (allPermits.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-1 bg-base-300/30 py-6 rounded-lg">
+        <span className="text-base-content/50 text-sm">None</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-1 mt-1">
+      {allPermits.map(({ data: permit, success }, index) => {
+        if (!success || !permit || permit.getHash() === activePermit?.getHash()) return null;
+        return <PermitItem key={index} permit={permit} isActive={false} onRemove={removePermit} />;
+      })}
+    </div>
   );
 };
 
@@ -143,21 +155,20 @@ const PermitItem = ({
         label="Expires"
         value={new Date(Number(permit.expiration) * 1000).toLocaleDateString()}
       />
-      <div className="flex justify-start gap-2 mt-2">
-        <div
-          className={`btn btn-xs btn-cofhe ${isActive && "btn-disabled"}`}
-          onClick={() => setActivePermit(permit.getHash())}
-        >
-          Use
+      {!isActive && (
+        <div className="flex justify-start gap-2 mt-2">
+          <div className="btn btn-xs btn-cofhe" onClick={() => setActivePermit(permit.getHash())}>
+            Use
+          </div>
+          <div
+            className="btn btn-ghost btn-xs text-error hover:text-error hover:bg-error/10"
+            onClick={() => onRemove(permit.getHash())}
+            title="Remove permit"
+          >
+            Delete
+          </div>
         </div>
-        <div
-          className="btn btn-ghost btn-xs text-error hover:text-error hover:bg-error/10"
-          onClick={() => onRemove(permit.getHash())}
-          title="Remove permit"
-        >
-          Delete
-        </div>
-      </div>
+      )}
     </div>
   );
 };
