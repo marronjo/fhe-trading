@@ -3,6 +3,13 @@ import { useCofhejsAccount, useCofhejsInitialized } from "./useCofhejs";
 import { FheTypes, UnsealedItem } from "cofhejs/web";
 import { cofhejs } from "cofhejs/web";
 import { zeroAddress } from "viem";
+import {
+  encryptedValueToString,
+  logBlockMessage,
+  logBlockMessageAndEnd,
+  logBlockStart,
+  plaintextToString,
+} from "~~/utils/cofhe/logging";
 
 export type DecryptionResult<T extends FheTypes> =
   | {
@@ -46,11 +53,19 @@ const _decryptValue = async <T extends FheTypes>(
   value: bigint,
   address: string,
 ): Promise<DecryptionResult<T>> => {
+  logBlockStart("useDecrypt - _decryptValue");
+  logBlockMessage(`DECRYPTING VALUE | ${encryptedValueToString(fheType, value)}`);
+
   if (value === 0n) {
+    const zeroValue = fheType === FheTypes.Bool ? false : fheType === FheTypes.Uint160 ? zeroAddress : 0n;
+    logBlockMessageAndEnd(
+      `SUCCESS          | ${encryptedValueToString(fheType, value)} => ${plaintextToString(fheType, zeroValue)}`,
+    );
+
     return {
       fheType,
       ctHash: 0n,
-      value: fheType === FheTypes.Bool ? false : fheType === FheTypes.Uint160 ? zeroAddress : 0n,
+      value: zeroValue,
       error: null,
       state: "success",
     } as DecryptionResult<T>;
@@ -58,6 +73,9 @@ const _decryptValue = async <T extends FheTypes>(
 
   const result = await cofhejs.unseal(value, fheType, address);
   if (result.success) {
+    logBlockMessageAndEnd(
+      `SUCCESS          | ${encryptedValueToString(fheType, value)} => ${plaintextToString(fheType, result.data)}`,
+    );
     return {
       fheType,
       ctHash: value,
@@ -66,6 +84,8 @@ const _decryptValue = async <T extends FheTypes>(
       state: "success",
     } as DecryptionResult<T>;
   }
+
+  logBlockMessageAndEnd(`FAILED           | ${result.error.message}`);
   return {
     fheType,
     ctHash: value,

@@ -8,6 +8,7 @@ import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 import { create, useStore } from "zustand";
 import { useShallow } from "zustand/react/shallow";
 import scaffoldConfig from "~~/scaffold.config";
+import { logBlockMessage, logBlockMessageAndEnd, logBlockStart } from "~~/utils/cofhe/logging";
 import { notification } from "~~/utils/scaffold-eth";
 
 const ChainEnvironments = {
@@ -70,6 +71,9 @@ export function useInitializeCofhejs() {
       // Early exit if any of the required dependencies are missing
       if (!publicClient || !walletClient || !isChainSupported) return;
 
+      logBlockStart("useInitializeCofhejs");
+      logBlockMessage("INITIALIZING     | Setting up CoFHE environment");
+
       const chainId = publicClient?.chain.id;
       const environment = ChainEnvironments[chainId as keyof typeof ChainEnvironments] ?? "TESTNET";
 
@@ -94,13 +98,16 @@ export function useInitializeCofhejs() {
         });
 
         if (initializationResult.success) {
-          console.log("Cofhejs initialized successfully");
+          logBlockMessageAndEnd("SUCCESS          | CoFHE environment initialized");
           notification.success("Cofhejs initialized successfully");
         } else {
+          logBlockMessageAndEnd(
+            `FAILED           | ${initializationResult.error.message ?? String(initializationResult.error)}`,
+          );
           handleError(initializationResult.error.message ?? String(initializationResult.error));
         }
       } catch (err) {
-        console.error("Failed to initialize cofhejs:", err);
+        logBlockMessageAndEnd(`FAILED           | ${err instanceof Error ? err.message : "Unknown error"}`);
         handleError(err instanceof Error ? err.message : "Unknown error initializing cofhejs");
       }
     };

@@ -1,11 +1,11 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { Encryptable, FheTypes, cofhejs } from "cofhejs/web";
+import { useEncryptInput } from "./useEncryptInput";
+import { FheTypes } from "cofhejs/web";
 import { IntegerInput, IntegerVariant } from "~~/components/scaffold-eth";
 import { EncryptedValue } from "~~/components/scaffold-eth/EncryptedValueCard";
 import { useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
-import { notification } from "~~/utils/scaffold-eth";
 
 /**
  * FHECounterComponent - A demonstration of Fully Homomorphic Encryption (FHE) in a web application
@@ -49,32 +49,22 @@ export const FHECounterComponent = () => {
 const SetCounterRow = () => {
   const [input, setInput] = useState<string>("");
   const { isPending, writeContractAsync } = useScaffoldWriteContract({ contractName: "FHECounter" });
-  const [isEncrypting, setIsEncrypting] = useState(false);
+  const { onEncryptInput, isEncryptingInput, inputEncryptionDisabled } = useEncryptInput();
 
   const handleSet = useCallback(() => {
     if (input === "") return;
 
     const encryptInputAndSet = async () => {
-      setIsEncrypting(true);
-      // Encrypt the input value as a uint32
-      // cofhejs.encrypt returns a result object with success status and data/error
-      const encryptedResult = await cofhejs.encrypt([Encryptable.uint32(input)]);
-      setIsEncrypting(false);
-
-      if (!encryptedResult.success) {
-        console.error("Failed to encrypt input", encryptedResult.error);
-        notification.error(`Failed to encrypt input: ${encryptedResult.error}`);
-        return;
-      }
+      const encryptedInput = await onEncryptInput(FheTypes.Uint32, input);
 
       // Send the encrypted value to the smart contract
-      writeContractAsync({ functionName: "set", args: [encryptedResult.data[0]] });
+      writeContractAsync({ functionName: "set", args: [encryptedInput] });
     };
 
     encryptInputAndSet();
-  }, [input, writeContractAsync]);
+  }, [input, writeContractAsync, onEncryptInput]);
 
-  const pending = isPending || isEncrypting;
+  const pending = isPending || isEncryptingInput;
 
   return (
     <div className="flex flex-row w-full gap-2">
@@ -82,7 +72,7 @@ const SetCounterRow = () => {
         <IntegerInput value={input} onChange={setInput} variant={IntegerVariant.UINT32} disableMultiplyBy1e18 />
       </div>
       <div
-        className={`btn btn-primary ${pending ? "btn-disabled" : ""} ${input === "" ? "btn-disabled" : ""}`}
+        className={`btn btn-primary ${pending ? "btn-disabled" : ""} ${input === "" || inputEncryptionDisabled ? "btn-disabled" : ""}`}
         onClick={handleSet}
       >
         {pending && <span className="loading loading-spinner loading-xs"></span>}
