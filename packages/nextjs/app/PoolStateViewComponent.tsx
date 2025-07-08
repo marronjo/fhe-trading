@@ -4,8 +4,11 @@ import { StateViewAbi } from "./constants/StateViewAbi";
 import { BigNumber } from "bignumber.js";
 import { useReadContract } from "wagmi";
 
-const STATE_VIEW_ADDRESS = "0xE1Dd9c3fA50EDB962E442f60DfBc432e24537E4C"; // replace this
-const poolId = "0x4a63d4af4e4aa3228f2705d8996c1cb15af1ca3273626d88202c0e2238ec071b"; // bytes32 string, replace with real value
+// Sepolia State View
+const STATE_VIEW_ADDRESS = "0xE1Dd9c3fA50EDB962E442f60DfBc432e24537E4C";
+
+// Market Order Hook with CPH/MSK tokens
+const poolId = "0xc33df38de07d39bdd0e19d82a158b5a0f11453287ee6a88c1da3f0b9010c23cd";
 
 function calculateExchangeRates(sqrtPriceX96: bigint): { zeroToOne: BigNumber; oneToZero: BigNumber } {
   const price = new BigNumber(sqrtPriceX96);
