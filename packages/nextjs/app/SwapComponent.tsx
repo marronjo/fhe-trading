@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { MarketOrderAbi } from "./constants/MarketOrder";
+import { PoolSwapAbi } from "./constants/PoolSwap";
 import { useEncryptInput } from "./useEncryptInput";
 import { FheTypes } from "cofhejs/web";
 import { useWriteContract } from "wagmi";
@@ -11,6 +12,11 @@ const MARKET_ORDER_HOOK_ADDRESS = "0x34DEb2a90744fC6F2F133140dC69952Bb39CC080";
 const CIPHER_TOKEN = "0x09fc36Bb906cB720037232697624bcAc48a4a21F";
 const MASK_TOKEN = "0x988E23405b307E59c0B63c71191FEB8681C15097";
 
+const POOL_SWAP = "0x9B6b46e2c869aa39918Db7f52f5557FE577B6eEe";
+
+const MIN_SQRT_PRICE = 4295128739n + 1n;
+const MAX_SQRT_PRICE = 1461446703485210103287273052203988822378723970342n - 1n;
+
 const poolKey = {
   currency0: CIPHER_TOKEN,
   currency1: MASK_TOKEN,
@@ -18,6 +24,13 @@ const poolKey = {
   tickSpacing: 60,
   hooks: MARKET_ORDER_HOOK_ADDRESS,
 };
+
+const testSettings = {
+  takeClaims: false,
+  settleUsingBurn: false,
+};
+
+const hookData = "0x";
 
 // 0x09fc36Bb906cB720037232697624bcAc48a4a21F  Cipher Token (CPH)
 // 0x988E23405b307E59c0B63c71191FEB8681C15097 Mask Token (MSK)
@@ -130,8 +143,25 @@ export function SwapComponent() {
     if (fromToken.value === "") return;
 
     if (activeTab === "swap") {
-      // Handle swap logic
       console.log("Executing swap:", { from: fromToken, to: toToken });
+
+      const swapTokens = async () => {
+        const zeroForOne = fromToken.symbol === "CPH";
+
+        const swapParams = {
+          zeroForOne: zeroForOne,
+          amountSpecified: -BigInt(fromToken.value),
+          sqrtPriceLimitX96: zeroForOne ? MIN_SQRT_PRICE : MAX_SQRT_PRICE,
+        };
+
+        writeContractAsync({
+          abi: PoolSwapAbi,
+          address: POOL_SWAP,
+          functionName: "swap",
+          args: [poolKey, swapParams, testSettings, hookData],
+        });
+      };
+      swapTokens();
     } else {
       console.log("Placing market order:", { from: fromToken, to: toToken });
 
