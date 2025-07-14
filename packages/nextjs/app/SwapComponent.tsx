@@ -1,9 +1,11 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { MarketOrderAbi } from "./constants/MarketOrder";
 import { PoolSwapAbi } from "./constants/PoolSwap";
+import { QuoterAbi } from "./constants/QuoterAbi";
 import { useEncryptInput } from "./useEncryptInput";
 import { FheTypes } from "cofhejs/web";
-import { useWriteContract } from "wagmi";
+import { formatUnits, parseUnits } from "viem";
+import { useReadContract, useWriteContract } from "wagmi";
 
 // Types
 type TabType = "swap" | "market";
@@ -11,6 +13,8 @@ type TabType = "swap" | "market";
 const MARKET_ORDER_HOOK_ADDRESS = "0x34DEb2a90744fC6F2F133140dC69952Bb39CC080";
 const CIPHER_TOKEN = "0x09fc36Bb906cB720037232697624bcAc48a4a21F";
 const MASK_TOKEN = "0x988E23405b307E59c0B63c71191FEB8681C15097";
+
+const QUOTER_ADDRESS = "0x61B3f2011A92d183C7dbaDBdA940a7555Ccf9227";
 
 const POOL_SWAP = "0x9B6b46e2c869aa39918Db7f52f5557FE577B6eEe";
 
@@ -41,37 +45,16 @@ interface Token {
   value: string;
 }
 
-interface ExchangeRate {
-  from: string;
-  to: string;
-  rate: number;
-}
-
 interface TabConfig {
   id: TabType;
   label: string;
   buttonText: string;
 }
 
-// Mock exchange rates (replace with real API call)
-const MOCK_EXCHANGE_RATES: ExchangeRate[] = [
-  { from: "CPH", to: "MSK", rate: 1 },
-  { from: "MSK", to: "CPH", rate: 1 },
-];
-
 const TABS: TabConfig[] = [
   { id: "market", label: "Market", buttonText: "Place Market Order" },
   { id: "swap", label: "Swap", buttonText: "Swap" },
 ];
-
-// Simulate API call to fetch exchange rates
-const fetchExchangeRate = async (from: string, to: string): Promise<number> => {
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 200));
-
-  const rate = MOCK_EXCHANGE_RATES.find(r => r.from === from && r.to === to);
-  return rate ? rate.rate : 1; // Default to 1 if no rate found
-};
 
 //Cipher / Mask Tokens
 const DEFAULT_TOKENS: { from: Token; to: Token } = {
@@ -84,43 +67,51 @@ export function SwapComponent() {
   const [activeTab, setActiveTab] = useState<TabType>("market");
   const [fromToken, setFromToken] = useState<Token>(DEFAULT_TOKENS.from);
   const [toToken, setToToken] = useState<Token>(DEFAULT_TOKENS.to);
-  const [isCalculating, setIsCalculating] = useState(false);
   const { isPending, writeContractAsync } = useWriteContract();
   const { onEncryptInput, isEncryptingInput, inputEncryptionDisabled } = useEncryptInput();
 
-  // 🔥 AUTO-CALCULATION LOGIC - This is where the magic happens!
-  const calculateOutputAmount = async (inputAmount: string) => {
-    if (!inputAmount || isNaN(Number(inputAmount)) || Number(inputAmount) <= 0) {
-      setToToken(prev => ({ ...prev, value: "" }));
-      return;
-    }
+  const shouldFetchQuote = useMemo(() => {
+    return (
+      fromToken.value &&
+      fromToken.value !== "0" &&
+      Number(fromToken.value) > 0 &&
+      !isNaN(Number(fromToken.value)) &&
+      fromToken.symbol !== toToken.symbol
+    );
+  }, [fromToken, toToken]);
 
-    setIsCalculating(true);
-
-    try {
-      // Fetch current exchange rate
-      const rate = await fetchExchangeRate(fromToken.symbol, toToken.symbol);
-
-      // Calculate output amount
-      const outputAmount = Number(inputAmount) * rate;
-
-      // Format to reasonable decimal places
-      const formattedAmount = outputAmount.toFixed(6).replace(/\.?0+$/, "");
-
-      // Update to token with calculated amount
-      setToToken(prev => ({ ...prev, value: formattedAmount }));
-    } catch (error) {
-      console.error("Error calculating exchange rate:", error);
-      setToToken(prev => ({ ...prev, value: "" }));
-    } finally {
-      setIsCalculating(false);
-    }
+  const quoteParams = {
+    poolKey: poolKey,
+    zeroForOne: fromToken.symbol === "CPH",
+    exactAmount: parseUnits(fromToken.value, 18),
+    hookData: hookData,
   };
 
+  // quoteExactInputSingle is not a view function, hence the need for ts-ignore below
+  // we want the call to be static and return a valid quote
+  const { data: quoteData, isLoading: isQuoteLoading } = useReadContract({
+    abi: QuoterAbi,
+    address: QUOTER_ADDRESS,
+    // @ts-ignore
+    functionName: "quoteExactInputSingle",
+    // @ts-ignore
+    args: [quoteParams],
+  });
+
   // Auto-calculate when fromToken amount changes
+  // useEffect(() => {
+  //   calculateOutputAmount(fromToken.value);
+  // }, [fromToken.value, fromToken.symbol, toToken.symbol]);
+
   useEffect(() => {
-    calculateOutputAmount(fromToken.value);
-  }, [fromToken.value, fromToken.symbol, toToken.symbol]);
+    if (quoteData && shouldFetchQuote) {
+      const quoteWei = BigInt(quoteData[0]);
+      const quotedAmount = formatUnits(quoteWei, 18);
+      setToToken(prev => ({ ...prev, value: quotedAmount }));
+    } else {
+      setToToken(prev => ({ ...prev, value: "" }));
+    }
+  }, [quoteData, shouldFetchQuote, fromToken.symbol, toToken.symbol]);
 
   // Handlers
   const handleTabChange = (tab: TabType) => {
@@ -189,7 +180,7 @@ export function SwapComponent() {
   }, [fromToken, writeContractAsync, onEncryptInput]);
 
   const isSubmitDisabled =
-    !fromToken.value || !toToken.value || isPending || isEncryptingInput || inputEncryptionDisabled;
+    !fromToken.value || !toToken.value || isPending || isEncryptingInput || inputEncryptionDisabled || isQuoteLoading;
 
   const currentTabConfig = TABS.find(tab => tab.id === activeTab);
 
@@ -207,10 +198,10 @@ export function SwapComponent() {
         <TokenInput
           token={toToken}
           placeholder="0.0"
-          onChange={() => {}} // Read-only now since it's auto-calculated
+          onChange={() => {}}
           label="To"
           readOnly={true}
-          isLoading={isCalculating}
+          isLoading={isQuoteLoading} // Changed from isCalculating
         />
       </div>
 
