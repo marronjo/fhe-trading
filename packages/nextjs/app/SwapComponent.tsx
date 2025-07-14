@@ -98,11 +98,6 @@ export function SwapComponent() {
     args: [quoteParams],
   });
 
-  // Auto-calculate when fromToken amount changes
-  // useEffect(() => {
-  //   calculateOutputAmount(fromToken.value);
-  // }, [fromToken.value, fromToken.symbol, toToken.symbol]);
-
   useEffect(() => {
     if (quoteData && shouldFetchQuote) {
       const quoteWei = BigInt(quoteData[0]);
