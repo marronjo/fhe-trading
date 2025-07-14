@@ -10,6 +10,7 @@ import { GenericContractsDeclaration } from "~~/utils/scaffold-eth/contract";
 const { targetNetworks } = scaffoldConfig;
 
 // Define the multicall3 address for hardhat chain
+/* eslint-disable */
 const HARDHAT_MULTICALL3_ADDRESS = (deployedContracts as GenericContractsDeclaration)["31337"].Multicall3.address;
 
 // We always want to have mainnet enabled (ENS resolution, ETH price, etc). But only once.
@@ -37,19 +38,19 @@ export const wagmiConfig = createConfig({
     }
 
     return createClient({
-      chain:
-        chain.id === hardhat.id
-          ? // Add multicall3 contract address to hardhat chain
-            {
-              ...chain,
-              contracts: {
-                ...chain.contracts,
-                multicall3: {
-                  address: HARDHAT_MULTICALL3_ADDRESS,
-                },
-              },
-            }
-          : chain,
+      chain: chain,
+        // chain.id === hardhat.id
+        //   ? // Add multicall3 contract address to hardhat chain
+        //     {
+        //       ...chain,
+        //       contracts: {
+        //         ...chain.contracts,
+        //         multicall3: {
+        //           address: HARDHAT_MULTICALL3_ADDRESS,
+        //         },
+        //       },
+        //     }
+        //   : chain,
       transport: fallback(rpcFallbacks),
       ...(chain.id !== (hardhat as Chain).id
         ? {
