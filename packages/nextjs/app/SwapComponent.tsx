@@ -121,8 +121,15 @@ export function SwapComponent() {
   };
 
   const handleFromTokenChange = (value: string) => {
-    setFromToken(prev => ({ ...prev, value }));
-    // Note: useEffect will trigger calculateOutputAmount automatically
+    const decimalIndex = value.indexOf(".");
+    if (decimalIndex !== -1 && value.length - decimalIndex - 1 > 18) {
+      value = value.substring(0, decimalIndex + 19);
+    }
+
+    const regex = /^$|^\d+(\.\d{0,18})?$/;
+    if (regex.test(value) && (value === "" || Number(value) >= 0)) {
+      setFromToken(prev => ({ ...prev, value }));
+    }
   };
 
   const handleSubmit = useCallback(() => {
@@ -179,6 +186,8 @@ export function SwapComponent() {
 
   const currentTabConfig = TABS.find(tab => tab.id === activeTab);
 
+  const loadingQuote = !!(isQuoteLoading && shouldFetchQuote);
+
   return (
     <div className="max-w-md w-full mx-auto mt-10 bg-white dark:bg-neutral-900 rounded-2xl shadow-lg p-6 space-y-6">
       {/* Tabs */}
@@ -196,7 +205,7 @@ export function SwapComponent() {
           onChange={() => {}}
           label="To"
           readOnly={true}
-          isLoading={isQuoteLoading} // Changed from isCalculating
+          isLoading={loadingQuote}
         />
       </div>
 
@@ -261,6 +270,8 @@ function TokenInput({ token, placeholder, onChange, label, readOnly = false, isL
         <input
           type="number"
           placeholder={placeholder}
+          min="0"
+          step="1e-18"
           value={token.value}
           onChange={e => onChange(e.target.value)}
           readOnly={readOnly}
@@ -285,12 +296,8 @@ function TokenInput({ token, placeholder, onChange, label, readOnly = false, isL
           </span>
         </div>
       </div>
-      {/* {readOnly && token.value && (
-        <div className="mt-1 text-xs text-neutral-400 dark:text-neutral-500">Auto-calculated</div>
-      )} */}
       <div className="mt-1 text-xs h-4">
         {" "}
-        {/* Fixed height h-4 */}
         {readOnly && token.value && <span className="text-neutral-400 dark:text-neutral-500">Auto-calculated</span>}
       </div>
     </div>
