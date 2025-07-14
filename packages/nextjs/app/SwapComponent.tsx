@@ -114,10 +114,11 @@ export function SwapComponent() {
   };
 
   const handleTokenSwap = () => {
-    const temp = fromToken;
-    setFromToken(toToken);
-    setToToken(temp);
-    // Note: useEffect will automatically recalculate after swap
+    const tempFromSymbol = fromToken.symbol;
+    const tempToSymbol = toToken.symbol;
+
+    setFromToken(prev => ({ ...prev, symbol: tempToSymbol }));
+    setToToken(prev => ({ ...prev, symbol: tempFromSymbol }));
   };
 
   const handleFromTokenChange = (value: string) => {
@@ -296,10 +297,11 @@ function TokenInput({ token, placeholder, onChange, label, readOnly = false, isL
           </span>
         </div>
       </div>
-      <div className="mt-1 text-xs h-4">
-        {" "}
-        {readOnly && token.value && <span className="text-neutral-400 dark:text-neutral-500">Auto-calculated</span>}
-      </div>
+      {readOnly && (
+        <div className="mt-1 text-xs h-4">
+          {token.value && <span className="text-neutral-400 dark:text-neutral-500">Auto-calculated</span>}
+        </div>
+      )}
     </div>
   );
 }
