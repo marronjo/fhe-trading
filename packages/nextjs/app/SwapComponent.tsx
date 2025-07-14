@@ -180,7 +180,7 @@ export function SwapComponent() {
   const currentTabConfig = TABS.find(tab => tab.id === activeTab);
 
   return (
-    <div className="max-w-md mx-auto mt-10 bg-white dark:bg-neutral-900 rounded-2xl shadow-lg p-6 space-y-6">
+    <div className="max-w-md w-full mx-auto mt-10 bg-white dark:bg-neutral-900 rounded-2xl shadow-lg p-6 space-y-6">
       {/* Tabs */}
       <TabSelector tabs={TABS} activeTab={activeTab} onTabChange={handleTabChange} />
 
@@ -285,9 +285,14 @@ function TokenInput({ token, placeholder, onChange, label, readOnly = false, isL
           </span>
         </div>
       </div>
-      {readOnly && token.value && (
+      {/* {readOnly && token.value && (
         <div className="mt-1 text-xs text-neutral-400 dark:text-neutral-500">Auto-calculated</div>
-      )}
+      )} */}
+      <div className="mt-1 text-xs h-4">
+        {" "}
+        {/* Fixed height h-4 */}
+        {readOnly && token.value && <span className="text-neutral-400 dark:text-neutral-500">Auto-calculated</span>}
+      </div>
     </div>
   );
 }
