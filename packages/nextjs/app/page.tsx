@@ -2,6 +2,7 @@
 
 import { Slot0Display } from "./PoolStateViewComponent";
 import { SwapComponent } from "./SwapComponent";
+import { TokenFaucet } from "./TokenFaucet";
 import type { NextPage } from "next";
 
 const Home: NextPage = () => {
@@ -17,6 +18,9 @@ const Home: NextPage = () => {
           <div className="flex justify-center items-center gap-12 flex-col md:flex-row">
             <Slot0Display />
           </div>
+        </div>
+        <div className="flex-1">
+          <TokenFaucet />
         </div>
       </div>
     </>
