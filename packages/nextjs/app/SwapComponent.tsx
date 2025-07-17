@@ -5,7 +5,8 @@ import { QuoterAbi } from "./constants/QuoterAbi";
 import { useEncryptInput } from "./useEncryptInput";
 import { FheTypes } from "cofhejs/web";
 import { formatUnits, parseUnits } from "viem";
-import { useReadContract, useWriteContract } from "wagmi";
+import { erc20Abi } from "viem";
+import { useAccount, useReadContract, useWriteContract } from "wagmi";
 
 // Types
 type TabType = "swap" | "market";
@@ -80,6 +81,8 @@ export function SwapComponent() {
     );
   }, [fromToken, toToken]);
 
+  const { address, isConnected } = useAccount();
+
   const quoteParams = {
     poolKey: poolKey,
     zeroForOne: fromToken.symbol === "CPH",
@@ -97,6 +100,44 @@ export function SwapComponent() {
     // @ts-ignore
     args: [quoteParams],
   });
+
+  const { data: cphBalance } = useReadContract({
+    abi: erc20Abi,
+    address: CIPHER_TOKEN,
+    functionName: "balanceOf",
+    args: [address!],
+    query: {
+      enabled: isConnected && !!address,
+    },
+  });
+
+  const { data: mskBalance } = useReadContract({
+    abi: erc20Abi,
+    address: MASK_TOKEN,
+    functionName: "balanceOf",
+    args: [address!],
+    query: {
+      enabled: isConnected && !!address,
+    },
+  });
+
+  const formatBalance = (balance: bigint | undefined): string => {
+    if (!balance) return "0";
+    const formatted = formatUnits(balance, 18);
+    const num = Number(formatted);
+
+    if (num >= 999e12) return ">999T";
+    if (num >= 1e12) return (num / 1e12).toFixed(2) + "T"; // Trillion
+    if (num >= 1e9) return (num / 1e9).toFixed(2) + "B"; // Billion
+    if (num >= 1e6) return (num / 1e6).toFixed(2) + "M"; // Million
+    if (num >= 1e3) return (num / 1e3).toFixed(2) + "K"; // Thousand
+    if (num >= 1) return num.toFixed(2); // Regular numbers
+    if (num >= 0.01) return num.toFixed(4); // Small decimals
+    return num.toExponential(2);
+  };
+
+  const cphFormattedBalance = formatBalance(cphBalance);
+  const mskFormattedBalance = formatBalance(mskBalance);
 
   useEffect(() => {
     if (quoteData && shouldFetchQuote) {
@@ -196,7 +237,13 @@ export function SwapComponent() {
 
       {/* Token Inputs */}
       <div className="space-y-4">
-        <TokenInput token={fromToken} placeholder="0.0" onChange={handleFromTokenChange} label="From" />
+        <TokenInput
+          token={fromToken}
+          placeholder="0.0"
+          onChange={handleFromTokenChange}
+          label="From"
+          balance={fromToken.symbol === "CPH" ? cphFormattedBalance : mskFormattedBalance}
+        />
 
         <SwapButton onClick={handleTokenSwap} />
 
@@ -207,6 +254,7 @@ export function SwapComponent() {
           label="To"
           readOnly={true}
           isLoading={loadingQuote}
+          balance={fromToken.symbol === "CPH" ? cphFormattedBalance : mskFormattedBalance}
         />
       </div>
 
@@ -256,9 +304,18 @@ interface TokenInputProps {
   label: string;
   readOnly?: boolean;
   isLoading?: boolean;
+  balance?: string;
 }
 
-function TokenInput({ token, placeholder, onChange, label, readOnly = false, isLoading = false }: TokenInputProps) {
+function TokenInput({
+  token,
+  placeholder,
+  onChange,
+  label,
+  readOnly = false,
+  isLoading = false,
+  balance = "0",
+}: TokenInputProps) {
   return (
     <div
       className={`rounded-xl px-4 py-3 transition-colors ${
@@ -297,11 +354,12 @@ function TokenInput({ token, placeholder, onChange, label, readOnly = false, isL
           </span>
         </div>
       </div>
-      {readOnly && (
-        <div className="mt-1 text-xs h-4">
-          {token.value && <span className="text-neutral-400 dark:text-neutral-500">Auto-calculated</span>}
-        </div>
-      )}
+      <div className="mt-2 text-xs h-4 flex justify-between items-center">
+        <span className="text-neutral-400 dark:text-neutral-500">{readOnly && token.value && "Auto-calculated"}</span>
+        <span className="text-neutral-400 dark:text-neutral-500">
+          {balance} {token.symbol}
+        </span>
+      </div>
     </div>
   );
 }
