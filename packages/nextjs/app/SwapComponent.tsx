@@ -11,9 +11,9 @@ import { useAccount, useReadContract, useWriteContract } from "wagmi";
 // Types
 type TabType = "swap" | "market";
 
-const MARKET_ORDER_HOOK_ADDRESS = "0x34DEb2a90744fC6F2F133140dC69952Bb39CC080";
-const CIPHER_TOKEN = "0x09fc36Bb906cB720037232697624bcAc48a4a21F";
-const MASK_TOKEN = "0x988E23405b307E59c0B63c71191FEB8681C15097";
+const MARKET_ORDER_HOOK_ADDRESS = "0x26ec265d869e4B024Eb0161961d5f72B31b20080"; // "0x34DEb2a90744fC6F2F133140dC69952Bb39CC080" OLD HOOK
+const CIPHER_TOKEN = "0x2f4eD4942BdF443aE5da11ac3cAB7bee8d6FaF45";
+const MASK_TOKEN = "0xbD313aDE73Cc114184CdBEf96788dd55118d4911";
 
 const QUOTER_ADDRESS = "0x61B3f2011A92d183C7dbaDBdA940a7555Ccf9227";
 
@@ -254,7 +254,7 @@ export function SwapComponent() {
           label="To"
           readOnly={true}
           isLoading={loadingQuote}
-          balance={fromToken.symbol === "CPH" ? cphFormattedBalance : mskFormattedBalance}
+          balance={toToken.symbol === "CPH" ? cphFormattedBalance : mskFormattedBalance}
         />
       </div>
 

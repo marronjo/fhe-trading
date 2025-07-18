@@ -8,7 +8,7 @@ import { useReadContract } from "wagmi";
 const STATE_VIEW_ADDRESS = "0xE1Dd9c3fA50EDB962E442f60DfBc432e24537E4C";
 
 // Market Order Hook with CPH/MSK tokens
-const poolId = "0xc33df38de07d39bdd0e19d82a158b5a0f11453287ee6a88c1da3f0b9010c23cd";
+const poolId = "0x3b98b977345c649503343e586441fa4d30604010759e55eb621ec17cecebd2c5";
 
 function calculateExchangeRates(sqrtPriceX96: bigint): { zeroToOne: BigNumber; oneToZero: BigNumber } {
   const price = new BigNumber(sqrtPriceX96);
