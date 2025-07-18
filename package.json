@@ -59,6 +59,8 @@
 		"node": ">=20.18.3"
 	},
 	"dependencies": {
-		"bignumber.js": "^9.3.0"
+		"bignumber.js": "^9.3.0",
+		"lucide-react": "^0.525.0",
+		"tailwind-merge": "^3.3.1"
 	}
 }
