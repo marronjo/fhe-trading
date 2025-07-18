@@ -884,6 +884,25 @@ export const MarketOrderAbi = [
   },
   {
     type: "function",
+    name: "getOrderDecryptStatus",
+    inputs: [
+      {
+        name: "handle",
+        type: "uint256",
+        internalType: "euint128",
+      },
+    ],
+    outputs: [
+      {
+        name: "decrypted",
+        type: "bool",
+        internalType: "bool",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "getPoolQueue",
     inputs: [
       {
@@ -1071,19 +1090,38 @@ export const MarketOrderAbi = [
   },
   {
     type: "event",
-    name: "MarketOrderExecuted",
+    name: "OrderPlaced",
     inputs: [
       {
-        name: "amount0",
-        type: "uint128",
-        indexed: false,
-        internalType: "uint128",
+        name: "user",
+        type: "address",
+        indexed: true,
+        internalType: "address",
       },
       {
-        name: "amount1",
-        type: "uint128",
-        indexed: false,
-        internalType: "uint128",
+        name: "handle",
+        type: "uint256",
+        indexed: true,
+        internalType: "euint128",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "OrderSettled",
+    inputs: [
+      {
+        name: "user",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "handle",
+        type: "uint256",
+        indexed: true,
+        internalType: "euint128",
       },
     ],
     anonymous: false,
