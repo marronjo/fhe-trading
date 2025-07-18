@@ -171,6 +171,8 @@ export function SwapComponent() {
   const handleSubmit = useCallback(() => {
     if (fromToken.value === "") return;
 
+    const formattedFromValue = parseUnits(fromToken.value, 18);
+
     if (activeTab === "swap") {
       console.log("Executing swap:", { from: fromToken, to: toToken });
 
@@ -179,7 +181,7 @@ export function SwapComponent() {
 
         const swapParams = {
           zeroForOne: zeroForOne,
-          amountSpecified: -BigInt(fromToken.value),
+          amountSpecified: -formattedFromValue, //minus for exactInput swap
           sqrtPriceLimitX96: zeroForOne ? MIN_SQRT_PRICE : MAX_SQRT_PRICE,
         };
 
@@ -195,7 +197,7 @@ export function SwapComponent() {
       console.log("Placing market order:", { from: fromToken, to: toToken });
 
       const encryptInputAndSet = async () => {
-        const encryptedValue = await onEncryptInput(FheTypes.Uint128, fromToken.value);
+        const encryptedValue = await onEncryptInput(FheTypes.Uint128, formattedFromValue);
 
         if (!encryptedValue) {
           console.log("VALUE : " + fromToken.value);
