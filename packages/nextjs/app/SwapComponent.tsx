@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { TransactionGuide, TxGuideStepState } from "./TransactionGuide";
 import {
   CIPHER_TOKEN,
   MARKET_ORDER_HOOK,
@@ -12,10 +13,16 @@ import { MarketOrderAbi } from "./constants/MarketOrder";
 import { PoolSwapAbi } from "./constants/PoolSwap";
 import { QuoterAbi } from "./constants/QuoterAbi";
 import { useEncryptInput } from "./useEncryptInput";
-import { FheTypes } from "cofhejs/web";
+import { CoFheInUint128, FheTypes } from "cofhejs/web";
 import { formatUnits, parseUnits } from "viem";
 import { erc20Abi } from "viem";
-import { useAccount, useReadContract, useWriteContract } from "wagmi";
+import {
+  useAccount,
+  useReadContract,
+  useWaitForTransactionReceipt,
+  useWatchContractEvent,
+  useWriteContract,
+} from "wagmi";
 
 // Types
 type TabType = "swap" | "market";
@@ -62,6 +69,17 @@ export function SwapComponent() {
   const [activeTab, setActiveTab] = useState<TabType>("market");
   const [fromToken, setFromToken] = useState<Token>(DEFAULT_TOKENS.from);
   const [toToken, setToToken] = useState<Token>(DEFAULT_TOKENS.to);
+
+  // Transaction status state
+  const [transactionHash, setTransactionHash] = useState<string>("");
+  const [encryptedValue, setEncryptedValue] = useState<CoFheInUint128>();
+  const [isProcessingOrder, setIsProcessingOrder] = useState(false);
+  const [encryptionStep, setEncryptionStep] = useState<TxGuideStepState>(TxGuideStepState.Ready);
+  const [confirmationStep, setConfirmationStep] = useState<TxGuideStepState>(TxGuideStepState.Ready);
+  const [decryptionStep, setDecryptionStep] = useState<TxGuideStepState>(TxGuideStepState.Ready);
+  const [executionStep, setExecutionStep] = useState<TxGuideStepState>(TxGuideStepState.Ready);
+  const [settlementStep, setSettlementStep] = useState<TxGuideStepState>(TxGuideStepState.Ready);
+
   const { isPending, writeContractAsync } = useWriteContract();
   const { onEncryptInput, isEncryptingInput, inputEncryptionDisabled } = useEncryptInput();
 
@@ -76,6 +94,144 @@ export function SwapComponent() {
   }, [fromToken, toToken]);
 
   const { address, isConnected } = useAccount();
+
+  // Poll for decryption status
+  const { data: decryptionStatus } = useReadContract({
+    abi: MarketOrderAbi,
+    address: MARKET_ORDER_HOOK,
+    functionName: "getOrderDecryptStatus",
+    args: encryptedValue?.ctHash ? [encryptedValue.ctHash] : undefined, // Use the ctHash from the encrypted value
+    query: {
+      enabled: !!encryptedValue?.ctHash && confirmationStep === TxGuideStepState.Success,
+      refetchInterval: 2000, // Poll every 2 seconds
+      refetchIntervalInBackground: true, // Keep polling even when tab not focused
+      // refetchOnWindowFocus: false,
+      // retry: false,
+      // staleTime: 0, // Always consider data stale
+    },
+  });
+
+  console.log("📞 CONTRACT CALL STATUS:", {
+    timestamp: new Date().toLocaleTimeString(),
+    data: decryptionStatus,
+    enabled: !!encryptedValue?.ctHash && confirmationStep === TxGuideStepState.Success,
+  });
+
+  // Watch for transaction confirmation
+  const { data: receipt } = useWaitForTransactionReceipt({
+    hash: transactionHash as `0x${string}`,
+    query: {
+      enabled: !!transactionHash,
+    },
+  });
+
+  // Watch for contract events - filtering by user and encrypted handle
+  useWatchContractEvent({
+    address: MARKET_ORDER_HOOK,
+    abi: MarketOrderAbi,
+    eventName: "OrderPlaced",
+    onLogs: logs => {
+      console.log("Order Placed LOGS: ", logs);
+      logs.forEach(log => {
+        console.log("Order Placed LOG: ", log);
+        // Check both user address and encrypted handle match our order
+        if (
+          log.transactionHash === transactionHash &&
+          log.args?.user === address //&&
+          // encryptedValue &&
+          // log.args?.handle === encryptedValue.ctHash) {
+        ) {
+          console.log("OrderPlaced event detected for our specific order");
+          setConfirmationStep(TxGuideStepState.Success);
+          setDecryptionStep(TxGuideStepState.Loading);
+        }
+      });
+    },
+    enabled: !!isProcessingOrder && !!address && !!encryptedValue,
+  });
+
+  useWatchContractEvent({
+    address: MARKET_ORDER_HOOK,
+    abi: MarketOrderAbi,
+    eventName: "OrderSettled",
+    onLogs: logs => {
+      logs.forEach(log => {
+        // Check both user address and encrypted handle match our order
+        if (log.args?.user === address && encryptedValue && log.args?.handle === encryptedValue.ctHash) {
+          console.log("OrderSettled event detected for our specific order");
+          setExecutionStep(TxGuideStepState.Success);
+          setSettlementStep(TxGuideStepState.Success);
+          setTimeout(() => {
+            resetTransactionStatus();
+          }, 5000);
+        }
+      });
+    },
+    enabled: !!transactionHash && !!address && !!encryptedValue,
+  });
+
+  // useWatchContractEvent({
+  //   address: MARKET_ORDER_HOOK,
+  //   abi: MarketOrderAbi,
+  //   eventName: 'OrderFailed',
+  //   onLogs: (logs) => {
+  //     logs.forEach(log => {
+  //       if (log.transactionHash === transactionHash && log.args?.user === address) {
+  //         setSettlementStep(TxGuideStepState.Error);
+  //         // Reset after 5 seconds
+  //         setTimeout(() => {
+  //           resetTransactionStatus();
+  //         }, 5000);
+  //       }
+  //     });
+  //   },
+  //   enabled: !!transactionHash && !!address,
+  // });
+
+  // Update encryption step based on isEncryptingInput
+  useEffect(() => {
+    if (isEncryptingInput && isProcessingOrder) {
+      setEncryptionStep(TxGuideStepState.Loading);
+    }
+  }, [isEncryptingInput, isProcessingOrder]);
+
+  // Update confirmation step when transaction is confirmed
+  useEffect(() => {
+    if (receipt && isProcessingOrder) {
+      console.log("Transaction receipt received, waiting for OrderPlaced event");
+      // Don't set confirmation to success here, wait for OrderPlaced event
+      // This ensures we have both transaction confirmation AND contract event
+    }
+  }, [receipt, isProcessingOrder]);
+
+  // Update decryption step based on polling result
+  useEffect(() => {
+    console.log("DECRYPTION STATUS: " + decryptionStatus);
+    console.log();
+    if (decryptionStatus !== undefined && isProcessingOrder) {
+      // Assuming getOrderDecryptStatus returns a boolean or status code
+      // Adjust this logic based on what your contract actually returns
+      if (decryptionStatus === true) {
+        setDecryptionStep(TxGuideStepState.Success);
+        setExecutionStep(TxGuideStepState.Loading);
+      } else if (decryptionStatus === false) {
+        // Still pending decryption
+        setDecryptionStep(TxGuideStepState.Loading);
+      }
+      // Add more conditions based on your contract's return values
+    }
+  }, [decryptionStatus, isProcessingOrder]);
+
+  const resetTransactionStatus = () => {
+    setIsProcessingOrder(false);
+    setTransactionHash("");
+    setEncryptedValue(undefined);
+    setEncryptionStep(TxGuideStepState.Ready);
+    setConfirmationStep(TxGuideStepState.Ready);
+    setDecryptionStep(TxGuideStepState.Ready);
+    setExecutionStep(TxGuideStepState.Ready);
+    setSettlementStep(TxGuideStepState.Ready);
+  };
 
   const quoteParams = {
     poolKey: poolKey,
@@ -143,9 +299,47 @@ export function SwapComponent() {
     }
   }, [quoteData, shouldFetchQuote, fromToken.symbol, toToken.symbol]);
 
+  // Transaction steps for market orders
+  const marketOrderSteps = [
+    {
+      title: "Encrypt",
+      hint: "Securing your order amount using FHE",
+      state: encryptionStep,
+      userInteraction: false,
+    },
+    {
+      title: "Confirm",
+      hint: "Transaction submitted to blockchain",
+      state: confirmationStep,
+      userInteraction: false,
+    },
+    {
+      title: "Decrypt",
+      hint: "Fhenix coprocessor decrypting order",
+      state: decryptionStep,
+      userInteraction: false,
+    },
+    {
+      title: "Execute",
+      hint: "Processing your swap order",
+      state: executionStep,
+      userInteraction: false,
+    },
+    {
+      title: "Settle",
+      hint: settlementStep === TxGuideStepState.Success ? "Order completed successfully!" : "Finalizing your trade",
+      state: settlementStep,
+      userInteraction: false,
+    },
+  ];
+
   // Handlers
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
+    // Reset transaction status when switching tabs
+    if (!isProcessingOrder) {
+      resetTransactionStatus();
+    }
   };
 
   const handleTokenSwap = () => {
@@ -196,31 +390,59 @@ export function SwapComponent() {
     } else {
       console.log("Placing market order:", { from: fromToken, to: toToken });
 
+      // Start transaction tracking
+      setIsProcessingOrder(true);
+      setEncryptionStep(TxGuideStepState.Loading);
+
       const encryptInputAndSet = async () => {
-        const encryptedValue = await onEncryptInput(FheTypes.Uint128, formattedFromValue);
+        try {
+          const encryptedValue = await onEncryptInput(FheTypes.Uint128, formattedFromValue);
 
-        if (!encryptedValue) {
-          console.log("VALUE : " + fromToken.value);
-          console.log("error encrypting value!");
-          return;
+          if (!encryptedValue) {
+            console.log("VALUE : " + fromToken.value);
+            console.log("error encrypting value!");
+            setEncryptionStep(TxGuideStepState.Error);
+            setTimeout(() => resetTransactionStatus(), 3000);
+            return;
+          }
+
+          // Encryption successful
+          setEncryptionStep(TxGuideStepState.Success);
+          setConfirmationStep(TxGuideStepState.Loading);
+
+          // Store the encrypted value for polling
+          setEncryptedValue(encryptedValue);
+
+          const zeroForOne = fromToken.symbol === "CPH";
+
+          // Send the encrypted value to the smart contract
+          const hash = await writeContractAsync({
+            abi: MarketOrderAbi,
+            address: MARKET_ORDER_HOOK,
+            functionName: "placeMarketOrder",
+            args: [poolKey, zeroForOne, encryptedValue],
+          });
+
+          setTransactionHash(hash);
+        } catch (error) {
+          console.error("Error in market order submission:", error);
+          setEncryptionStep(TxGuideStepState.Error);
+          setTimeout(() => resetTransactionStatus(), 3000);
         }
-
-        const zeroForOne = fromToken.symbol === "CPH";
-        // Send the encrypted value to the smart contract
-        writeContractAsync({
-          abi: MarketOrderAbi,
-          address: MARKET_ORDER_HOOK,
-          functionName: "placeMarketOrder",
-          args: [poolKey, zeroForOne, encryptedValue],
-        });
       };
 
       encryptInputAndSet();
     }
-  }, [fromToken, writeContractAsync, onEncryptInput]);
+  }, [fromToken, toToken, activeTab, writeContractAsync, onEncryptInput]);
 
   const isSubmitDisabled =
-    !fromToken.value || !toToken.value || isPending || isEncryptingInput || inputEncryptionDisabled || isQuoteLoading;
+    !fromToken.value ||
+    !toToken.value ||
+    isPending ||
+    isEncryptingInput ||
+    inputEncryptionDisabled ||
+    isQuoteLoading ||
+    isProcessingOrder;
 
   const currentTabConfig = TABS.find(tab => tab.id === activeTab);
 
@@ -262,11 +484,16 @@ export function SwapComponent() {
         onClick={handleSubmit}
         disabled={isSubmitDisabled}
       />
+
+      {/* Transaction Status Guide - Only show for market orders when processing */}
+      {activeTab === "market" && isProcessingOrder && (
+        <TransactionGuide title="Market Order Progress" steps={marketOrderSteps} />
+      )}
     </div>
   );
 }
 
-// Sub-components
+// Sub-components remain the same...
 interface TabSelectorProps {
   tabs: TabConfig[];
   activeTab: TabType;
