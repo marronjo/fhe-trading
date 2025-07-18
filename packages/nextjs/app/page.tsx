@@ -41,23 +41,25 @@ const Home: NextPage = () => {
         <div className="grow bg-base-300 w-full mt-16 px-8 py-12">
           {/* Tab Navigation */}
           <div className="flex justify-center mb-8">
-            <div className="flex space-x-1 bg-neutral-200 dark:bg-neutral-800 rounded-xl p-1">
+            <div className="flex space-x-8 border-b border-neutral-200 dark:border-neutral-700">
               {MAIN_TABS.map(tab => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`px-6 py-3 rounded-lg text-sm font-semibold transition-all ${
+                  className={`pb-4 text-sm font-semibold transition-all relative ${
                     activeTab === tab.id
-                      ? "bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white shadow-sm"
-                      : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
+                      ? "text-purple-600 dark:text-purple-400"
+                      : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200"
                   }`}
                 >
                   {tab.label}
+                  {activeTab === tab.id && (
+                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-500 to-blue-500" />
+                  )}
                 </button>
               ))}
             </div>
           </div>
-
           {/* Tab Content */}
           <div className="flex justify-center items-center">{renderTabContent()}</div>
         </div>
