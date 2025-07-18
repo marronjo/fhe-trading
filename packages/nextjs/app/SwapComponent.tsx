@@ -1,4 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  CIPHER_TOKEN,
+  MARKET_ORDER_HOOK,
+  MASK_TOKEN,
+  MAX_SQRT_PRICE,
+  MIN_SQRT_PRICE,
+  POOL_SWAP,
+  QUOTER,
+} from "./constants/Constants";
 import { MarketOrderAbi } from "./constants/MarketOrder";
 import { PoolSwapAbi } from "./constants/PoolSwap";
 import { QuoterAbi } from "./constants/QuoterAbi";
@@ -11,23 +20,12 @@ import { useAccount, useReadContract, useWriteContract } from "wagmi";
 // Types
 type TabType = "swap" | "market";
 
-const MARKET_ORDER_HOOK_ADDRESS = "0x26ec265d869e4B024Eb0161961d5f72B31b20080"; // "0x34DEb2a90744fC6F2F133140dC69952Bb39CC080" OLD HOOK
-const CIPHER_TOKEN = "0x2f4eD4942BdF443aE5da11ac3cAB7bee8d6FaF45";
-const MASK_TOKEN = "0xbD313aDE73Cc114184CdBEf96788dd55118d4911";
-
-const QUOTER_ADDRESS = "0x61B3f2011A92d183C7dbaDBdA940a7555Ccf9227";
-
-const POOL_SWAP = "0x9B6b46e2c869aa39918Db7f52f5557FE577B6eEe";
-
-const MIN_SQRT_PRICE = 4295128739n + 1n;
-const MAX_SQRT_PRICE = 1461446703485210103287273052203988822378723970342n - 1n;
-
 const poolKey = {
   currency0: CIPHER_TOKEN,
   currency1: MASK_TOKEN,
   fee: 3000,
   tickSpacing: 60,
-  hooks: MARKET_ORDER_HOOK_ADDRESS,
+  hooks: MARKET_ORDER_HOOK,
 };
 
 const testSettings = {
@@ -36,10 +34,6 @@ const testSettings = {
 };
 
 const hookData = "0x";
-
-// 0x09fc36Bb906cB720037232697624bcAc48a4a21F  Cipher Token (CPH)
-// 0x988E23405b307E59c0B63c71191FEB8681C15097 Mask Token (MSK)
-// 0x34DEb2a90744fC6F2F133140dC69952Bb39CC080 Market Order Hook
 
 interface Token {
   symbol: string;
@@ -94,7 +88,7 @@ export function SwapComponent() {
   // we want the call to be static and return a valid quote
   const { data: quoteData, isLoading: isQuoteLoading } = useReadContract({
     abi: QuoterAbi,
-    address: QUOTER_ADDRESS,
+    address: QUOTER,
     // @ts-ignore
     functionName: "quoteExactInputSingle",
     // @ts-ignore
@@ -213,7 +207,7 @@ export function SwapComponent() {
         // Send the encrypted value to the smart contract
         writeContractAsync({
           abi: MarketOrderAbi,
-          address: MARKET_ORDER_HOOK_ADDRESS,
+          address: MARKET_ORDER_HOOK,
           functionName: "placeMarketOrder",
           args: [poolKey, zeroForOne, encryptedValue],
         });

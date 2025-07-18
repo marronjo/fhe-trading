@@ -1,14 +1,9 @@
 "use client";
 
+import { POOL_ID, STATE_VIEW } from "./constants/Constants";
 import { StateViewAbi } from "./constants/StateViewAbi";
 import { BigNumber } from "bignumber.js";
 import { useReadContract } from "wagmi";
-
-// Sepolia State View
-const STATE_VIEW_ADDRESS = "0xE1Dd9c3fA50EDB962E442f60DfBc432e24537E4C";
-
-// Market Order Hook with CPH/MSK tokens
-const poolId = "0x3b98b977345c649503343e586441fa4d30604010759e55eb621ec17cecebd2c5";
 
 function calculateExchangeRates(sqrtPriceX96: bigint): { zeroToOne: BigNumber; oneToZero: BigNumber } {
   const price = new BigNumber(sqrtPriceX96);
@@ -25,9 +20,9 @@ function calculateExchangeRates(sqrtPriceX96: bigint): { zeroToOne: BigNumber; o
 export function Slot0Display() {
   const { data } = useReadContract({
     abi: StateViewAbi,
-    address: STATE_VIEW_ADDRESS,
+    address: STATE_VIEW,
     functionName: "getSlot0",
-    args: [poolId],
+    args: [POOL_ID],
   });
 
   if (!data) {
