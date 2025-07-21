@@ -1,28 +1,14 @@
 import { useState } from "react";
 import { tokenAbi } from "./constants/Token";
+import { formatUnits, parseUnits } from "viem";
 import { useAccount, useReadContract, useWriteContract } from "wagmi";
 
-const CIPHER_TOKEN = "0x09fc36Bb906cB720037232697624bcAc48a4a21F";
-const MASK_TOKEN = "0x988E23405b307E59c0B63c71191FEB8681C15097";
-
-// Helper functions (copy from your swap component)
-const toWei = (value: string, decimals: number = 18): string => {
-  if (!value || isNaN(Number(value))) return "0";
-  const num = Number(value);
-  const wei = num * Math.pow(10, decimals);
-  return Math.floor(wei).toString();
-};
-
-const fromWei = (value: string | bigint, decimals: number = 18): string => {
-  if (!value) return "0";
-  const num = typeof value === "string" ? Number(value) : Number(value);
-  const readable = num / Math.pow(10, decimals);
-  return readable.toFixed(6).replace(/\.?0+$/, "");
-};
+const CIPHER_TOKEN = "0x2f4eD4942BdF443aE5da11ac3cAB7bee8d6FaF45"; //"0x09fc36Bb906cB720037232697624bcAc48a4a21F";
+const MASK_TOKEN = "0xbD313aDE73Cc114184CdBEf96788dd55118d4911"; //"0x988E23405b307E59c0B63c71191FEB8681C15097";
 
 const formatBalance = (balance: bigint | undefined): string => {
   if (!balance) return "0";
-  const readable = fromWei(balance.toString(), 18);
+  const readable = formatUnits(balance, 18);
   const num = Number(readable);
 
   if (num >= 999 * 1e12) return ">999T";
@@ -75,7 +61,7 @@ export function TokenFaucet() {
         abi: tokenAbi, // You'll need the mint function in your ABI
         address: selectedToken === "CPH" ? CIPHER_TOKEN : MASK_TOKEN,
         functionName: "mint",
-        args: [BigInt(toWei(mintAmount, 18))],
+        args: [parseUnits(mintAmount, 18)],
       });
       setMintAmount("");
     } catch (error) {
@@ -91,7 +77,7 @@ export function TokenFaucet() {
         abi: tokenAbi,
         address: selectedToken === "CPH" ? CIPHER_TOKEN : MASK_TOKEN,
         functionName: "burn",
-        args: [BigInt(toWei(burnAmount, 18))],
+        args: [parseUnits(burnAmount, 18)],
       });
       setBurnAmount("");
     } catch (error) {
@@ -101,7 +87,7 @@ export function TokenFaucet() {
 
   return (
     <div className="max-w-md mx-auto mt-10 bg-white dark:bg-neutral-900 rounded-2xl shadow-lg p-6 space-y-6">
-      <h2 className="text-xl font-bold text-center mb-6">Token Management</h2>
+      <h2 className="text-xl font-bold text-center mb-6">Token Faucet</h2>
 
       {/* Token Selection */}
       <div className="flex justify-center space-x-4">
