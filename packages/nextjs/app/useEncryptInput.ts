@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { useState } from "react";
-import { useCofhejsInitialized } from "./useCofhejs";
+import { useCofhejsInitialized } from "./hooks/useCofhejs";
 import {
   Encryptable,
   EncryptableAddress,

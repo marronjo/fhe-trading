@@ -9,7 +9,7 @@ import {
   useCofhejsRemovePermit,
   useCofhejsSetActivePermit,
   useCofhejsStatus,
-} from "~~/app/useCofhejs";
+} from "~~/app/hooks/useCofhejs";
 import { useOutsideClick } from "~~/hooks/scaffold-eth";
 import scaffoldConfig from "~~/scaffold.config";
 

@@ -3,7 +3,7 @@
 import { useCallback, useState } from "react";
 import { zeroAddress } from "viem";
 import { ShieldCheckIcon } from "@heroicons/react/24/solid";
-import { useCofhejsAccount, useCofhejsCreatePermit, useCofhejsModalStore } from "~~/app/useCofhejs";
+import { useCofhejsAccount, useCofhejsCreatePermit, useCofhejsModalStore } from "~~/app/hooks/useCofhejs";
 import { AddressInput } from "~~/components/scaffold-eth";
 
 /**
