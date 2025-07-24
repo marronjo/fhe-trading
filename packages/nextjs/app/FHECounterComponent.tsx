@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { useEncryptInput } from "./useEncryptInput";
+import { useEncryptInput } from "./hooks/useEncryptInput";
 import { FheTypes } from "cofhejs/web";
 import { IntegerInput, IntegerVariant } from "~~/components/scaffold-eth";
 import { EncryptedValue } from "~~/components/scaffold-eth/EncryptedValueCard";

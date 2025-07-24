@@ -3527,7 +3527,7 @@ __metadata:
     "@typescript-eslint/parser": ~8.27.0
     chai: ~4.5.0
     cofhe-hardhat-plugin: ^0.3.0
-    cofhejs: 0.3.1-alpha.0
+    cofhejs: ^0.3.0
     dotenv: ~16.4.5
     envfile: ~7.1.0
     eslint: ~9.23.0
@@ -7025,6 +7025,24 @@ __metadata:
     zod: ^3.23.8
     zustand: ^5.0.1
   checksum: b00e6a9a433ff991d56e2a4eaa292e25828d85b2f2a295c1fb7ea93709d18fb2c72432646239d82b5274fad8c60d5eb9e4d01869e0ac4605872eb2dc7871b473
+  languageName: node
+  linkType: hard
+
+"cofhejs@npm:^0.3.0":
+  version: 0.3.0
+  resolution: "cofhejs@npm:0.3.0"
+  dependencies:
+    "@types/node": ^20.0.0
+    idb-keyval: ^6.2.1
+    immer: ^10.1.1
+    node-tfhe: 0.11.1
+    tfhe: 0.11.1
+    tweetnacl: ^1.0.3
+    tweetnacl-util: ^0.15.1
+    type-fest: ^4.26.1
+    zod: ^3.23.8
+    zustand: ^5.0.1
+  checksum: bc7efa0e664afe7478e01815ee714c5dca70eeb45aba4b1899a700acff2facb1a7024135c28e1de73e579f003b851dcf22ed5083ec8b5b3fb1cee425fe60fe67
   languageName: node
   linkType: hard
 
@@ -12127,6 +12145,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"lucide-react@npm:^0.525.0":
+  version: 0.525.0
+  resolution: "lucide-react@npm:0.525.0"
+  peerDependencies:
+    react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
+  checksum: eef781bfcfd211dac1ca93d0e7c5830aec1bacef72f4af3994807ac04d2a0fe327aca1a77234daf7f13e06ea47e5585766c927c8e1f2e7dcb982e4dc55aeda5e
+  languageName: node
+  linkType: hard
+
 "make-dir@npm:^3.1.0":
   version: 3.1.0
   resolution: "make-dir@npm:3.1.0"
@@ -14985,6 +15012,8 @@ __metadata:
     bignumber.js: ^9.3.0
     husky: ~9.1.6
     lint-staged: ~13.2.2
+    lucide-react: ^0.525.0
+    tailwind-merge: ^3.3.1
   languageName: unknown
   linkType: soft
 
@@ -16004,6 +16033,13 @@ __metadata:
     string-width: ^4.2.3
     strip-ansi: ^6.0.1
   checksum: f54a7d1c11cda8c676e1e9aff5e723646905ed4579cca14b3ce12d2b12eac3e18f5dbe2549fe0b79697164858e18961145db4dd0660bbeb0fb4032af0aaf32b4
+  languageName: node
+  linkType: hard
+
+"tailwind-merge@npm:^3.3.1":
+  version: 3.3.1
+  resolution: "tailwind-merge@npm:3.3.1"
+  checksum: ace3675227d86f1def95b25b7f6793268a6ab2f340b43ef64ad25646588d2b1d87714cd60db6947bfdb5bb85be3bb6ce1802021620c541ef7a9c3faa05915f2b
   languageName: node
   linkType: hard
 
