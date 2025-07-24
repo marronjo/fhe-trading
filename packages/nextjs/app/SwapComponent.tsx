@@ -1,4 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { SubmitButton } from "./SubmitButton";
+import { SwapButton } from "./SwapButton";
+import { TabConfig, TabType } from "./Tab";
+import { TabSelector } from "./TabSelector";
+import { Token } from "./Token";
+import { TokenInput } from "./TokenInput";
 import { TransactionGuide, TxGuideStepState } from "./TransactionGuide";
 import {
   CIPHER_TOKEN,
@@ -25,9 +31,6 @@ import {
   useWriteContract,
 } from "wagmi";
 
-// Types
-type TabType = "swap" | "market";
-
 const poolKey = {
   currency0: CIPHER_TOKEN,
   currency1: MASK_TOKEN,
@@ -42,17 +45,6 @@ const testSettings = {
 };
 
 const hookData = "0x";
-
-interface Token {
-  symbol: string;
-  value: string;
-}
-
-interface TabConfig {
-  id: TabType;
-  label: string;
-  buttonText: string;
-}
 
 const TABS: TabConfig[] = [
   { id: "market", label: "Market", buttonText: "Place Market Order" },
@@ -460,14 +452,28 @@ export function SwapComponent() {
     }
   }, [fromToken, toToken, activeTab, writeContractAsync, onEncryptInput]);
 
-  const isSubmitDisabled =
-    !fromToken.value ||
-    !toToken.value ||
-    isPending ||
-    isEncryptingInput ||
-    inputEncryptionDisabled ||
-    isQuoteLoading ||
-    isProcessingOrder;
+  const isSubmitDisabled = useMemo(() => {
+    // Common conditions that always disable the button
+    const commonDisabled = !fromToken.value || !toToken.value || isPending || inputEncryptionDisabled || isQuoteLoading;
+
+    // If on market tab, also disable when encrypting or processing a market order
+    if (activeTab === "market") {
+      return commonDisabled || isEncryptingInput || isProcessingOrder;
+    }
+
+    // If on swap tab, don't disable due to market order processing
+    // (but still disable if encrypting since that affects both)
+    return commonDisabled || isEncryptingInput;
+  }, [
+    fromToken.value,
+    toToken.value,
+    isPending,
+    inputEncryptionDisabled,
+    isQuoteLoading,
+    activeTab,
+    isEncryptingInput,
+    isProcessingOrder,
+  ]);
 
   const currentTabConfig = TABS.find(tab => tab.id === activeTab);
 
@@ -515,149 +521,5 @@ export function SwapComponent() {
         <TransactionGuide title="Market Order Progress" steps={marketOrderSteps} />
       )}
     </div>
-  );
-}
-
-// Sub-components remain the same...
-interface TabSelectorProps {
-  tabs: TabConfig[];
-  activeTab: TabType;
-  onTabChange: (tab: TabType) => void;
-}
-
-function TabSelector({ tabs, activeTab, onTabChange }: TabSelectorProps) {
-  return (
-    <div className="flex justify-between mb-4">
-      {tabs.map(tab => (
-        <button
-          key={tab.id}
-          onClick={() => onTabChange(tab.id)}
-          className={`px-4 py-2 rounded-xl text-sm font-semibold transition ${
-            activeTab === tab.id
-              ? "bg-gradient-to-r from-purple-500 to-blue-500 text-white"
-              : "bg-neutral-100 dark:bg-neutral-800 text-neutral-500"
-          }`}
-        >
-          {tab.label}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-interface TokenInputProps {
-  token: Token;
-  placeholder: string;
-  onChange: (value: string) => void;
-  label: string;
-  readOnly?: boolean;
-  isLoading?: boolean;
-  balance?: string;
-}
-
-function TokenInput({
-  token,
-  placeholder,
-  onChange,
-  label,
-  readOnly = false,
-  isLoading = false,
-  balance = "0",
-}: TokenInputProps) {
-  return (
-    <div
-      className={`rounded-xl px-4 py-3 transition-colors ${
-        readOnly
-          ? "bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200 dark:border-neutral-700"
-          : "bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700"
-      }`}
-    >
-      <div className="flex justify-between items-center">
-        <input
-          type="number"
-          placeholder={placeholder}
-          min="0"
-          step="1e-18"
-          value={token.value}
-          onChange={e => onChange(e.target.value)}
-          readOnly={readOnly}
-          disabled={readOnly}
-          className={`bg-transparent text-lg font-medium w-full outline-none transition-colors ${
-            readOnly
-              ? "cursor-not-allowed text-neutral-400 dark:text-neutral-500 placeholder-neutral-300 dark:placeholder-neutral-600"
-              : "text-neutral-900 dark:text-neutral-100 placeholder-neutral-500 focus:text-neutral-900 dark:focus:text-white"
-          }`}
-          aria-label={`${label} amount`}
-        />
-        <div className="flex items-center ml-2">
-          {isLoading && (
-            <div className="animate-spin rounded-full h-4 w-4 border-2 border-purple-500 border-t-transparent mr-2"></div>
-          )}
-          <span
-            className={`text-sm transition-colors ${
-              readOnly ? "text-neutral-400 dark:text-neutral-500" : "text-neutral-500 dark:text-neutral-400"
-            }`}
-          >
-            {token.symbol}
-          </span>
-        </div>
-      </div>
-      <div className="mt-2 text-xs h-4 flex justify-between items-center">
-        <span className="text-neutral-400 dark:text-neutral-500">{readOnly && token.value && "Auto-calculated"}</span>
-        <span className="text-neutral-400 dark:text-neutral-500">
-          {balance} {token.symbol}
-        </span>
-      </div>
-    </div>
-  );
-}
-
-interface SwapButtonProps {
-  onClick: () => void;
-}
-
-function SwapButton({ onClick }: SwapButtonProps) {
-  return (
-    <div className="flex justify-center">
-      <button
-        onClick={onClick}
-        className="bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600 rounded-full p-2 transition-colors"
-        aria-label="Swap tokens"
-      >
-        <svg
-          className="w-4 h-4 text-neutral-600 dark:text-neutral-400"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
-          />
-        </svg>
-      </button>
-    </div>
-  );
-}
-
-interface SubmitButtonProps {
-  text: string;
-  onClick: () => void;
-  disabled: boolean;
-}
-
-function SubmitButton({ text, onClick, disabled }: SubmitButtonProps) {
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      className={`w-full text-white text-base py-3 rounded-xl transition ${
-        disabled ? "bg-neutral-400 cursor-not-allowed" : "bg-gradient-to-r from-purple-500 to-blue-500 hover:opacity-90"
-      }`}
-    >
-      {text}
-    </button>
   );
 }
