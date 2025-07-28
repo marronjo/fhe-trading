@@ -79,6 +79,12 @@ export function SwapComponent() {
 
     // Reset the main transaction flow
     marketOrderStatus.resetTransactionStatus();
+
+    // Reset order state to allow placing new orders
+    setIsOrderEncrypted(false);
+    setPreEncryptedValue("");
+    setEncryptedObject(null);
+    setFromToken(prev => ({ ...prev, value: "" }));
   };
 
   useMarketOrderEvents({
