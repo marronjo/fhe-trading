@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { ConnectWallet } from "./ConnectWallet";
 import { Slot0Display } from "./PoolStateViewComponent";
 import { SwapComponent } from "./SwapComponent";
 import { TokenFaucet } from "./TokenFaucet";
 import type { NextPage } from "next";
+import { useAccount } from "wagmi";
 
 type MainTabType = "swap" | "pool" | "faucet";
 
@@ -21,8 +23,14 @@ const MAIN_TABS: MainTab[] = [
 
 const Home: NextPage = () => {
   const [activeTab, setActiveTab] = useState<MainTabType>("swap");
+  const { address } = useAccount();
 
   const renderTabContent = () => {
+    // Show connect wallet message if no wallet is connected
+    if (!address) {
+      return <ConnectWallet />;
+    }
+
     switch (activeTab) {
       case "swap":
         return <SwapComponent />;
