@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { ApprovalModal } from "./ApprovalModal";
 import { AsyncOrderStatus } from "./AsyncOrderStatus";
 import { SubmitButton } from "./SubmitButton";
 import { SwapButton } from "./SwapButton";
@@ -14,6 +15,7 @@ import { useEncryptInput } from "./hooks/useEncryptInput";
 import { useMarketOrderEvents } from "./hooks/useMarketOrderEvents";
 import { useMarketOrderStatus } from "./hooks/useMarketOrderStatus";
 import { useQuoteData } from "./hooks/useQuoteData";
+import { useTokenAllowance } from "./hooks/useTokenAllowance";
 import { useTokenBalances } from "./hooks/useTokenBalances";
 import { CoFheInItem, FheTypes } from "cofhejs/web";
 import { parseUnits } from "viem";
@@ -32,6 +34,9 @@ export function SwapComponent() {
   // Swap loading state
   const [isSwapLoading, setIsSwapLoading] = useState(false);
 
+  // Approval modal state
+  const [showApprovalModal, setShowApprovalModal] = useState(false);
+
   const { address } = useAccount();
   const { isEncryptingInput, onEncryptInput } = useEncryptInput();
 
@@ -40,6 +45,21 @@ export function SwapComponent() {
   const tokenBalances = useTokenBalances();
   const quoteData = useQuoteData(fromToken, toToken, setToToken);
   const asyncOrders = useAsyncOrders();
+
+  // Token allowance check for market orders (only when there's a value)
+  const formattedAmount = fromToken.value && Number(fromToken.value) > 0 ? parseUnits(fromToken.value, 18) : 0n;
+
+  const tokenAllowance = useTokenAllowance(
+    fromToken.symbol as "CPH" | "MSK",
+    activeTab === "market" ? formattedAmount : 0n,
+  );
+
+  // Auto-close approval modal when approval is successful
+  useEffect(() => {
+    if (tokenAllowance.hasEnoughAllowance && showApprovalModal) {
+      setShowApprovalModal(false);
+    }
+  }, [tokenAllowance.hasEnoughAllowance, showApprovalModal]);
 
   // Move order to background tracking after completion
   const moveToAsyncTracking = () => {
@@ -203,9 +223,11 @@ export function SwapComponent() {
     }
 
     if (!isOrderEncrypted) {
+      const hasInsufficientAllowance = !tokenAllowance.hasEnoughAllowance && formattedAmount > 0n;
+
       return {
-        text: "Encrypt Order",
-        onClick: handleEncryptOrder,
+        text: hasInsufficientAllowance ? "Approve Tokens" : "Encrypt Order",
+        onClick: hasInsufficientAllowance ? () => setShowApprovalModal(true) : handleEncryptOrder,
         disabled: !fromToken.value || Number(fromToken.value) === 0,
         isLoading: false,
       };
@@ -277,6 +299,19 @@ export function SwapComponent() {
         onClick={buttonConfig.onClick}
         disabled={buttonConfig.disabled}
         isLoading={buttonConfig.isLoading}
+      />
+
+      {/* Approval Modal */}
+      <ApprovalModal
+        isOpen={showApprovalModal}
+        tokenSymbol={fromToken.symbol as "CPH" | "MSK"}
+        requiredAmount={formattedAmount}
+        currentAllowance={tokenAllowance.currentAllowance}
+        onApprove={unlimited => {
+          tokenAllowance.approve(unlimited);
+        }}
+        onClose={() => setShowApprovalModal(false)}
+        isApproving={tokenAllowance.isApproving}
       />
 
       <AsyncOrderStatus orders={asyncOrders.asyncOrders} />
