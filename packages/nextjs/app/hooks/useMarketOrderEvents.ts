@@ -1,7 +1,8 @@
-import { useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { TxGuideStepState } from "../TransactionGuide";
 import { MARKET_ORDER_HOOK } from "../constants/Constants";
 import { MarketOrderAbi } from "../constants/MarketOrder";
+import { decodeEventLog } from "viem";
 import { usePublicClient, useWaitForTransactionReceipt, useWatchContractEvent } from "wagmi";
 
 interface UseMarketOrderEventsProps {
@@ -17,6 +18,7 @@ interface UseMarketOrderEventsProps {
   setSettlementStep: (step: TxGuideStepState) => void;
   setManualDecryptionStatus: (status: boolean | undefined) => void;
   resetTransactionStatus: () => void;
+  updateOrderStatus: (id: string, status: "completed" | "failed") => void;
 }
 
 export function useMarketOrderEvents({
@@ -32,8 +34,36 @@ export function useMarketOrderEvents({
   setSettlementStep,
   setManualDecryptionStatus,
   resetTransactionStatus,
+  updateOrderStatus,
 }: UseMarketOrderEventsProps) {
   const publicClient = usePublicClient();
+  const [orderPlacedDetected, setOrderPlacedDetected] = useState(false);
+
+  // Reset orderPlacedDetected when a new transaction starts
+  useEffect(() => {
+    if (transactionHash && isProcessingOrder) {
+      setOrderPlacedDetected(false);
+    }
+  }, [transactionHash, isProcessingOrder]);
+
+  // Centralized handler for OrderPlaced events
+  const handleOrderPlacedEvent = useCallback(
+    (args: any) => {
+      if (orderPlacedDetected) return; // Prevent duplicate processing
+
+      if (!args.handle) {
+        console.log("Error reading handle from OrderPlaced event!");
+        return;
+      }
+
+      console.log("Processing OrderPlaced event with handle:", args.handle);
+      setOrderPlacedDetected(true);
+      setEncryptedValue(args.handle);
+      setConfirmationStep(TxGuideStepState.Success);
+      setDecryptionStep(TxGuideStepState.Loading);
+    },
+    [orderPlacedDetected, setEncryptedValue, setConfirmationStep, setDecryptionStep],
+  );
 
   // Watch for transaction confirmation
   const { data: receipt } = useWaitForTransactionReceipt({
@@ -51,14 +81,8 @@ export function useMarketOrderEvents({
     onLogs: logs => {
       logs.forEach(log => {
         if (log.transactionHash === transactionHash && log.args?.user === address) {
-          console.log("OrderPlaced event detected for our specific order: ", log);
-          if (!log.args.handle) {
-            console.log("Error reading handle from orderplaced event!");
-            return;
-          }
-          setEncryptedValue(log.args.handle);
-          setConfirmationStep(TxGuideStepState.Success);
-          setDecryptionStep(TxGuideStepState.Loading);
+          console.log("OrderPlaced event detected via watcher:", log);
+          handleOrderPlacedEvent(log.args);
         }
       });
     },
@@ -77,6 +101,13 @@ export function useMarketOrderEvents({
           console.log("OrderSettled event detected for our specific order");
           setExecutionStep(TxGuideStepState.Success);
           setSettlementStep(TxGuideStepState.Success);
+
+          // Update the async order status to completed
+          if (transactionHash) {
+            console.log("Updating async order status to completed for:", transactionHash);
+            updateOrderStatus(transactionHash, "completed");
+          }
+
           setTimeout(() => {
             resetTransactionStatus();
           }, 5000);
@@ -133,12 +164,40 @@ export function useMarketOrderEvents({
     };
   }, [confirmationStep, isProcessingOrder, publicClient, encryptedValue, setManualDecryptionStatus]);
 
-  // Handle transaction receipt
+  // Handle transaction receipt - parse for OrderPlaced events as fallback
   useEffect(() => {
-    if (receipt && isProcessingOrder) {
-      console.log("Transaction receipt received, waiting for OrderPlaced event");
+    if (receipt && receipt.logs && isProcessingOrder && !orderPlacedDetected) {
+      console.log("Parsing transaction receipt for OrderPlaced events...");
+
+      try {
+        const orderPlacedEvents = receipt.logs.filter(log => {
+          try {
+            const decoded = decodeEventLog({
+              abi: MarketOrderAbi,
+              data: log.data,
+              topics: log.topics,
+            });
+            return decoded.eventName === "OrderPlaced" && decoded.args?.user === address;
+          } catch {
+            return false;
+          }
+        });
+
+        if (orderPlacedEvents.length > 0) {
+          const eventLog = orderPlacedEvents[0];
+          const decoded = decodeEventLog({
+            abi: MarketOrderAbi,
+            data: eventLog.data,
+            topics: eventLog.topics,
+          });
+          console.log("Found OrderPlaced event in transaction receipt:", decoded);
+          handleOrderPlacedEvent(decoded.args);
+        }
+      } catch (error) {
+        console.error("Error parsing transaction receipt for OrderPlaced events:", error);
+      }
     }
-  }, [receipt, isProcessingOrder]);
+  }, [receipt, isProcessingOrder, address, orderPlacedDetected, handleOrderPlacedEvent]);
 
   return {
     receipt,

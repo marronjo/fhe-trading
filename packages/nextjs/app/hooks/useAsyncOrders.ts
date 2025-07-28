@@ -25,12 +25,7 @@ export function useAsyncOrders() {
   };
 
   const hasOrder = (id: string): boolean => {
-    asyncOrders.forEach(order => {
-      if (order.id === id) {
-        return true;
-      }
-    });
-    return false;
+    return asyncOrders.some(order => order.id === id);
   };
 
   const updateOrderStatus = (id: string, status: "completed" | "failed") => {

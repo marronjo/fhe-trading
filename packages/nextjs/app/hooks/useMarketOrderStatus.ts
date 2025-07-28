@@ -26,12 +26,6 @@ export function useMarketOrderStatus() {
 
   const marketOrderSteps = [
     {
-      title: "Encrypt",
-      hint: "Securing your order amount using FHE",
-      state: encryptionStep,
-      userInteraction: false,
-    },
-    {
       title: "Confirm",
       hint: "Transaction submitted to blockchain",
       state: confirmationStep,

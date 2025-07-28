@@ -6,8 +6,8 @@ import { MARKET_ORDER_HOOK, MAX_SQRT_PRICE, MIN_SQRT_PRICE, POOL_SWAP } from "..
 import { HOOK_DATA, POOL_KEY, TEST_SETTINGS } from "../constants/Constants";
 import { MarketOrderAbi } from "../constants/MarketOrder";
 import { PoolSwapAbi } from "../constants/PoolSwap";
-import { useEncryptInput } from "./useEncryptInput";
-import { FheTypes } from "cofhejs/web";
+import { CoFheInItem } from "cofhejs/web";
+// Removed unused imports
 import { parseUnits } from "viem";
 import { useWriteContract } from "wagmi";
 
@@ -20,18 +20,19 @@ interface UseBusinessLogicProps {
   isQuoteLoading: boolean;
   isEncryptingInput: boolean;
   isProcessingOrder: boolean;
+  isSwapLoading: boolean;
+  encryptedObject: CoFheInItem | null;
   manualDecryptionStatus: boolean | undefined;
   decryptionStep: TxGuideStepState;
   setIsProcessingOrder: (value: boolean) => void;
-  setEncryptionStep: (step: TxGuideStepState) => void;
   setConfirmationStep: (step: TxGuideStepState) => void;
   setDecryptionStep: (step: TxGuideStepState) => void;
   setExecutionStep: (step: TxGuideStepState) => void;
   setSettlementStep: (step: TxGuideStepState) => void;
-  setEncryptedValue: (value: bigint) => void;
   setTransactionHash: (hash: string) => void;
   resetTransactionStatus: () => void;
   moveToAsyncTracking: () => void;
+  setIsSwapLoading: (loading: boolean) => void;
 }
 
 export function useBusinessLogic({
@@ -43,21 +44,21 @@ export function useBusinessLogic({
   isQuoteLoading,
   isEncryptingInput,
   isProcessingOrder,
+  isSwapLoading,
+  encryptedObject,
   manualDecryptionStatus,
   decryptionStep,
   setIsProcessingOrder,
-  setEncryptionStep,
   setConfirmationStep,
   setDecryptionStep,
   setExecutionStep,
   setSettlementStep,
-  setEncryptedValue,
   setTransactionHash,
   resetTransactionStatus,
   moveToAsyncTracking,
+  setIsSwapLoading,
 }: UseBusinessLogicProps) {
   const { writeContractAsync } = useWriteContract();
-  const { onEncryptInput } = useEncryptInput();
 
   // Handle decryption status updates
   useEffect(() => {
@@ -91,12 +92,7 @@ export function useBusinessLogic({
     moveToAsyncTracking,
   ]);
 
-  // Handle encryption status updates
-  useEffect(() => {
-    if (isEncryptingInput && isProcessingOrder) {
-      setEncryptionStep(TxGuideStepState.Loading);
-    }
-  }, [isEncryptingInput, isProcessingOrder, setEncryptionStep]);
+  // Remove encryption step handling since we pre-encrypt
 
   const handleSubmit = useCallback(() => {
     if (fromToken.value === "") return;
@@ -107,77 +103,93 @@ export function useBusinessLogic({
       console.log("Executing swap:", { from: fromToken, to: toToken });
 
       const swapTokens = async () => {
-        const zeroForOne = fromToken.symbol === "CPH";
+        try {
+          setIsSwapLoading(true);
 
-        const swapParams = {
-          zeroForOne: zeroForOne,
-          amountSpecified: -formattedFromValue,
-          sqrtPriceLimitX96: zeroForOne ? MIN_SQRT_PRICE : MAX_SQRT_PRICE,
-        };
+          const zeroForOne = fromToken.symbol === "CPH";
 
-        writeContractAsync({
-          abi: PoolSwapAbi,
-          address: POOL_SWAP,
-          functionName: "swap",
-          args: [POOL_KEY, swapParams, TEST_SETTINGS, HOOK_DATA],
-        });
+          const swapParams = {
+            zeroForOne: zeroForOne,
+            amountSpecified: -formattedFromValue,
+            sqrtPriceLimitX96: zeroForOne ? MIN_SQRT_PRICE : MAX_SQRT_PRICE,
+          };
+
+          await writeContractAsync({
+            abi: PoolSwapAbi,
+            address: POOL_SWAP,
+            functionName: "swap",
+            args: [POOL_KEY, swapParams, TEST_SETTINGS, HOOK_DATA],
+          });
+
+          // Reset loading state after transaction is submitted
+          setIsSwapLoading(false);
+        } catch (error) {
+          console.error("Swap transaction failed:", error);
+          setIsSwapLoading(false);
+        }
       };
       swapTokens();
     } else {
       console.log("Placing market order:", { from: fromToken, to: toToken });
 
+      if (activeTab === "market" && !encryptedObject) {
+        console.error("No encrypted object available for market order");
+        return;
+      }
+
+      // Type guard: Ensure encryptedObject is not null before using it
+      if (!encryptedObject) {
+        console.error("Encrypted object is null");
+        return;
+      }
+
       setIsProcessingOrder(true);
-      setEncryptionStep(TxGuideStepState.Loading);
+      setConfirmationStep(TxGuideStepState.Loading);
 
-      const encryptInputAndSet = async () => {
+      const placeMarketOrder = async () => {
         try {
-          const encryptedLiquidity = await onEncryptInput(FheTypes.Uint128, formattedFromValue);
-
-          if (!encryptedLiquidity) {
-            console.log("VALUE : " + fromToken.value);
-            console.log("error encrypting value!");
-            setEncryptionStep(TxGuideStepState.Error);
-            setTimeout(() => resetTransactionStatus(), 3000);
-            return;
-          }
-
-          setEncryptionStep(TxGuideStepState.Success);
-          setConfirmationStep(TxGuideStepState.Loading);
-
-          console.log("Encrypted Value: ", encryptedLiquidity);
-          setEncryptedValue(encryptedLiquidity.ctHash);
-
           const zeroForOne = fromToken.symbol === "CPH";
+
+          console.log("Using pre-encrypted object:", encryptedObject);
+          console.log("encryptedObject keys:", Object.keys(encryptedObject || {}));
+          console.log("encryptedObject type:", typeof encryptedObject);
+
+          // Log all arguments being passed to the contract
+          console.log("Contract call arguments:", {
+            poolKey: POOL_KEY,
+            zeroForOne,
+            encryptedLiquidity: encryptedObject,
+          });
 
           const hash = await writeContractAsync({
             abi: MarketOrderAbi,
             address: MARKET_ORDER_HOOK,
             functionName: "placeMarketOrder",
-            args: [POOL_KEY, zeroForOne, encryptedLiquidity],
+            args: [POOL_KEY, zeroForOne, encryptedObject],
+            gas: 1000000n, // Add explicit gas limit
           });
 
           setTransactionHash(hash);
         } catch (error) {
           console.error("Error in market order submission:", error);
-          setEncryptionStep(TxGuideStepState.Error);
+          setConfirmationStep(TxGuideStepState.Error);
           setTimeout(() => resetTransactionStatus(), 3000);
         }
       };
 
-      encryptInputAndSet();
+      placeMarketOrder();
     }
   }, [
     fromToken,
     toToken,
     activeTab,
     writeContractAsync,
-    onEncryptInput,
+    encryptedObject,
     setIsProcessingOrder,
-    setEncryptionStep,
     setConfirmationStep,
-    setEncryptedValue,
     setTransactionHash,
     resetTransactionStatus,
+    setIsSwapLoading,
   ]);
 
   const isSubmitDisabled = useMemo(() => {
@@ -187,7 +199,7 @@ export function useBusinessLogic({
       return commonDisabled || isEncryptingInput || isProcessingOrder;
     }
 
-    return commonDisabled || isEncryptingInput;
+    return commonDisabled || isEncryptingInput || isSwapLoading;
   }, [
     fromToken.value,
     toToken.value,
@@ -197,6 +209,7 @@ export function useBusinessLogic({
     activeTab,
     isEncryptingInput,
     isProcessingOrder,
+    isSwapLoading,
   ]);
 
   return {
