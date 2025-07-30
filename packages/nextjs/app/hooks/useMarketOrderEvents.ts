@@ -14,10 +14,8 @@ interface UseMarketOrderEventsProps {
   setEncryptedValue: (value: bigint) => void;
   setConfirmationStep: (step: TxGuideStepState) => void;
   setDecryptionStep: (step: TxGuideStepState) => void;
-  setExecutionStep: (step: TxGuideStepState) => void;
   setSettlementStep: (step: TxGuideStepState) => void;
   setManualDecryptionStatus: (status: boolean | undefined) => void;
-  resetTransactionStatus: () => void;
   updateOrderStatus: (id: string, status: "completed" | "failed") => void;
 }
 
@@ -30,10 +28,8 @@ export function useMarketOrderEvents({
   setEncryptedValue,
   setConfirmationStep,
   setDecryptionStep,
-  setExecutionStep,
   setSettlementStep,
   setManualDecryptionStatus,
-  resetTransactionStatus,
   updateOrderStatus,
 }: UseMarketOrderEventsProps) {
   const publicClient = usePublicClient();
@@ -99,7 +95,6 @@ export function useMarketOrderEvents({
         console.log("order settled: ", log);
         if (log.args?.user === address && encryptedValue && log.args?.handle === encryptedValue) {
           console.log("OrderSettled event detected for our specific order");
-          setExecutionStep(TxGuideStepState.Success);
           setSettlementStep(TxGuideStepState.Success);
 
           // Update the async order status to completed
@@ -108,9 +103,7 @@ export function useMarketOrderEvents({
             updateOrderStatus(transactionHash, "completed");
           }
 
-          setTimeout(() => {
-            resetTransactionStatus();
-          }, 5000);
+          // Transaction status will remain visible until manually reset
         }
       });
     },

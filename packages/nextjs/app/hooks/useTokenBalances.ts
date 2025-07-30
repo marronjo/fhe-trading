@@ -43,5 +43,7 @@ export function useTokenBalances() {
   return {
     cphFormattedBalance: formatBalance(cphBalance),
     mskFormattedBalance: formatBalance(mskBalance),
+    cphRawBalance: cphBalance || 0n,
+    mskRawBalance: mskBalance || 0n,
   };
 }

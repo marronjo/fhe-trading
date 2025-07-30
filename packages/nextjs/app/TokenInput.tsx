@@ -8,6 +8,7 @@ interface TokenInputProps {
   readOnly?: boolean;
   isLoading?: boolean;
   balance?: string;
+  hasError?: boolean;
 }
 
 export function TokenInput({
@@ -18,13 +19,16 @@ export function TokenInput({
   readOnly = false,
   isLoading = false,
   balance = "0",
+  hasError = false,
 }: TokenInputProps) {
   return (
     <div
       className={`rounded-xl px-4 py-3 transition-colors ${
-        readOnly
-          ? "bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200 dark:border-neutral-700"
-          : "bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700"
+        hasError
+          ? "bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800"
+          : readOnly
+            ? "bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200 dark:border-neutral-700"
+            : "bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700"
       }`}
     >
       <div className="flex justify-between items-center">
@@ -38,9 +42,11 @@ export function TokenInput({
           readOnly={readOnly}
           disabled={readOnly}
           className={`bg-transparent text-lg font-medium w-full outline-none transition-colors ${
-            readOnly
-              ? "cursor-not-allowed text-neutral-400 dark:text-neutral-500 placeholder-neutral-300 dark:placeholder-neutral-600"
-              : "text-neutral-900 dark:text-neutral-100 placeholder-neutral-500 focus:text-neutral-900 dark:focus:text-white"
+            hasError
+              ? "text-red-600 dark:text-red-400 placeholder-red-400 dark:placeholder-red-500"
+              : readOnly
+                ? "cursor-not-allowed text-neutral-400 dark:text-neutral-500 placeholder-neutral-300 dark:placeholder-neutral-600"
+                : "text-neutral-900 dark:text-neutral-100 placeholder-neutral-500 focus:text-neutral-900 dark:focus:text-white"
           }`}
           aria-label={`${label} amount`}
         />
