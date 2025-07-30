@@ -8,7 +8,6 @@ export function useMarketOrderStatus() {
   const [encryptionStep, setEncryptionStep] = useState<TxGuideStepState>(TxGuideStepState.Ready);
   const [confirmationStep, setConfirmationStep] = useState<TxGuideStepState>(TxGuideStepState.Ready);
   const [decryptionStep, setDecryptionStep] = useState<TxGuideStepState>(TxGuideStepState.Ready);
-  const [executionStep, setExecutionStep] = useState<TxGuideStepState>(TxGuideStepState.Ready);
   const [settlementStep, setSettlementStep] = useState<TxGuideStepState>(TxGuideStepState.Ready);
   const [manualDecryptionStatus, setManualDecryptionStatus] = useState<boolean | undefined>(undefined);
 
@@ -19,7 +18,6 @@ export function useMarketOrderStatus() {
     setEncryptionStep(TxGuideStepState.Ready);
     setConfirmationStep(TxGuideStepState.Ready);
     setDecryptionStep(TxGuideStepState.Ready);
-    setExecutionStep(TxGuideStepState.Ready);
     setSettlementStep(TxGuideStepState.Ready);
     setManualDecryptionStatus(undefined);
   };
@@ -39,10 +37,7 @@ export function useMarketOrderStatus() {
     },
     {
       title: "Queue",
-      hint:
-        settlementStep === TxGuideStepState.Success
-          ? "Order queued! We'll notify you when executed."
-          : "Adding to execution queue...",
+      hint: settlementStep === TxGuideStepState.Success ? "Order queued successfully!" : "Adding to execution queue...",
       state: settlementStep, // Use settlement step for the final "Queue" step
       userInteraction: false,
     },
@@ -56,7 +51,6 @@ export function useMarketOrderStatus() {
     encryptionStep,
     confirmationStep,
     decryptionStep,
-    executionStep,
     settlementStep,
     manualDecryptionStatus,
     marketOrderSteps,
@@ -68,7 +62,6 @@ export function useMarketOrderStatus() {
     setEncryptionStep,
     setConfirmationStep,
     setDecryptionStep,
-    setExecutionStep,
     setSettlementStep,
     setManualDecryptionStatus,
 

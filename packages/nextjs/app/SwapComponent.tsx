@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ApprovalModal } from "./ApprovalModal";
 import { AsyncOrderStatus } from "./AsyncOrderStatus";
 import { SubmitButton } from "./SubmitButton";
@@ -20,6 +20,7 @@ import { useTokenBalances } from "./hooks/useTokenBalances";
 import { CoFheInItem, FheTypes } from "cofhejs/web";
 import { parseUnits } from "viem";
 import { useAccount } from "wagmi";
+import { notification } from "~~/utils/scaffold-eth";
 
 export function SwapComponent() {
   const [activeTab, setActiveTab] = useState<TabType>("market");
@@ -36,6 +37,12 @@ export function SwapComponent() {
 
   // Approval modal state
   const [showApprovalModal, setShowApprovalModal] = useState(false);
+
+  // Local encryption loading state
+  const [isEncryptionLoading, setIsEncryptionLoading] = useState(false);
+
+  // Store toast ID to replace previous notifications
+  const insufficientBalanceToastIdRef = useRef<string | null>(null);
 
   const { address } = useAccount();
   const { isEncryptingInput, onEncryptInput } = useEncryptInput();
@@ -77,8 +84,7 @@ export function SwapComponent() {
       encryptedValue: marketOrderStatus.encryptedValue!,
     });
 
-    // Reset the main transaction flow
-    marketOrderStatus.resetTransactionStatus();
+    // Keep transaction status visible - don't reset
 
     // Reset order state to allow placing new orders
     setIsOrderEncrypted(false);
@@ -96,10 +102,8 @@ export function SwapComponent() {
     setEncryptedValue: marketOrderStatus.setEncryptedValue,
     setConfirmationStep: marketOrderStatus.setConfirmationStep,
     setDecryptionStep: marketOrderStatus.setDecryptionStep,
-    setExecutionStep: marketOrderStatus.setExecutionStep,
     setSettlementStep: marketOrderStatus.setSettlementStep,
     setManualDecryptionStatus: marketOrderStatus.setManualDecryptionStatus,
-    resetTransactionStatus: marketOrderStatus.resetTransactionStatus,
     updateOrderStatus: asyncOrders.updateOrderStatus,
   });
 
@@ -119,7 +123,6 @@ export function SwapComponent() {
     setIsProcessingOrder: marketOrderStatus.setIsProcessingOrder,
     setConfirmationStep: marketOrderStatus.setConfirmationStep,
     setDecryptionStep: marketOrderStatus.setDecryptionStep,
-    setExecutionStep: marketOrderStatus.setExecutionStep,
     setSettlementStep: marketOrderStatus.setSettlementStep,
     setTransactionHash: marketOrderStatus.setTransactionHash,
     resetTransactionStatus: marketOrderStatus.resetTransactionStatus,
@@ -172,22 +175,32 @@ export function SwapComponent() {
   };
 
   // New handler for encryption step
-  const handleEncryptOrder = async () => {
+  const handleEncryptOrder = useCallback(async () => {
     if (!fromToken.value || Number(fromToken.value) === 0) {
       return;
     }
 
-    try {
-      // Store the value that was encrypted
-      setPreEncryptedValue(fromToken.value);
+    // Set loading state and never change it until encryption is complete
+    setIsEncryptionLoading(true);
 
-      // Call the encryption function using FheTypes.Uint64 for token amounts
-      // Import FheTypes to use the proper enum value
-      const formattedInput = parseUnits(fromToken.value, 18);
+    // Store the current values we need
+    const currentValue = fromToken.value;
+
+    try {
+      // Small delay to ensure UI renders the loading state
+      await new Promise(resolve => requestAnimationFrame(resolve));
+
+      // Reset transaction status for new order
+      marketOrderStatus.resetTransactionStatus();
+
+      // Store the value that was encrypted
+      setPreEncryptedValue(currentValue);
+
+      // Call the encryption function
+      const formattedInput = parseUnits(currentValue, 18);
       const encryptedResult = await onEncryptInput(FheTypes.Uint128, formattedInput);
 
       if (encryptedResult) {
-        // Debug: Log the encrypted result structure
         console.log("Encrypted result structure:", encryptedResult);
         console.log("Encrypted result keys:", Object.keys(encryptedResult));
 
@@ -200,15 +213,67 @@ export function SwapComponent() {
       }
     } catch (error) {
       console.error("Encryption failed:", error);
-      // Handle encryption error
+    } finally {
+      // Only reset loading state at the very end
+      setIsEncryptionLoading(false);
     }
-  };
+  }, [fromToken.value, onEncryptInput, marketOrderStatus]);
 
   // Get current tab configuration first
   const currentTabConfig = TABS.find(tab => tab.id === activeTab);
 
+  // Check if user has insufficient balance using raw bigint values for accuracy
+  const currentFormattedBalance =
+    fromToken.symbol === "CPH" ? tokenBalances.cphFormattedBalance : tokenBalances.mskFormattedBalance;
+  const currentRawBalance = fromToken.symbol === "CPH" ? tokenBalances.cphRawBalance : tokenBalances.mskRawBalance;
+
+  const hasInsufficientBalance = !!(
+    fromToken.value &&
+    Number(fromToken.value) > 0 &&
+    (() => {
+      try {
+        const requiredAmount = parseUnits(fromToken.value, 18);
+        return currentRawBalance < requiredAmount;
+      } catch {
+        return false; // Invalid input, don't show error
+      }
+    })()
+  );
+
+  // Show toast notification for insufficient balance
+  useEffect(() => {
+    if (hasInsufficientBalance && fromToken.value && Number(fromToken.value) > 0) {
+      // Remove previous toast if it exists
+      if (insufficientBalanceToastIdRef.current) {
+        notification.remove(insufficientBalanceToastIdRef.current);
+      }
+
+      // Show new toast and store its ID
+      const toastId = notification.warning(
+        <div>
+          <div className="font-medium">Insufficient {fromToken.symbol} Balance</div>
+          <div className="text-sm mt-1">
+            You need {fromToken.value} {fromToken.symbol} but only have {currentFormattedBalance} {fromToken.symbol}.
+          </div>
+          <div className="text-sm mt-1 text-blue-600 dark:text-blue-400">
+            💡 Visit the <strong>Faucet</strong> tab to mint more tokens
+          </div>
+        </div>,
+        { duration: 4000 },
+      );
+
+      insufficientBalanceToastIdRef.current = toastId;
+    } else {
+      // Remove toast when balance becomes sufficient
+      if (insufficientBalanceToastIdRef.current) {
+        notification.remove(insufficientBalanceToastIdRef.current);
+        insufficientBalanceToastIdRef.current = null;
+      }
+    }
+  }, [hasInsufficientBalance, fromToken.value, fromToken.symbol, currentFormattedBalance]);
+
   // Determine button text and handler based on state
-  const getButtonConfig = () => {
+  const buttonConfig = useMemo(() => {
     if (activeTab !== "market") {
       return {
         text: isSwapLoading ? "Swapping..." : currentTabConfig?.buttonText || "Submit",
@@ -218,7 +283,16 @@ export function SwapComponent() {
       };
     }
 
-    // Market order flow
+    // Market order flow - prioritize our local loading state
+    if (isEncryptionLoading) {
+      return {
+        text: "Encrypting...",
+        onClick: () => {},
+        disabled: true,
+        isLoading: true,
+      };
+    }
+
     if (isEncryptingInput) {
       return {
         text: "Encrypting...",
@@ -232,9 +306,17 @@ export function SwapComponent() {
       const hasInsufficientAllowance = !tokenAllowance.hasEnoughAllowance && formattedAmount > 0n;
 
       return {
-        text: hasInsufficientAllowance ? "Approve Tokens" : "Encrypt Order",
-        onClick: hasInsufficientAllowance ? () => setShowApprovalModal(true) : handleEncryptOrder,
-        disabled: !fromToken.value || Number(fromToken.value) === 0,
+        text: hasInsufficientBalance
+          ? "Insufficient Balance"
+          : hasInsufficientAllowance
+            ? "Approve Tokens"
+            : "Encrypt Order",
+        onClick: hasInsufficientBalance
+          ? () => {}
+          : hasInsufficientAllowance
+            ? () => setShowApprovalModal(true)
+            : handleEncryptOrder,
+        disabled: !fromToken.value || Number(fromToken.value) === 0 || hasInsufficientBalance,
         isLoading: false,
       };
     }
@@ -243,11 +325,32 @@ export function SwapComponent() {
       text: "Place Market Order",
       onClick: businessLogic.handleSubmit,
       disabled: businessLogic.isSubmitDisabled,
-      isLoading: false,
+      isLoading: marketOrderStatus.isProcessingOrder,
     };
-  };
+  }, [
+    activeTab,
+    currentTabConfig,
+    isSwapLoading,
+    businessLogic.handleSubmit,
+    businessLogic.isSubmitDisabled,
+    isEncryptingInput,
+    isEncryptionLoading,
+    isOrderEncrypted,
+    tokenAllowance.hasEnoughAllowance,
+    formattedAmount,
+    fromToken.value,
+    handleEncryptOrder,
+    marketOrderStatus.isProcessingOrder,
+    hasInsufficientBalance,
+  ]);
 
-  const buttonConfig = getButtonConfig();
+  // Ensure button always has valid config
+  const safeButtonConfig = {
+    text: buttonConfig.text || "Loading...",
+    onClick: buttonConfig.onClick || (() => {}),
+    disabled: buttonConfig.disabled ?? true,
+    isLoading: buttonConfig.isLoading ?? false,
+  };
 
   return (
     <div className="max-w-md w-full mx-auto mt-10 bg-white dark:bg-neutral-900 rounded-2xl shadow-lg p-6 space-y-6">
@@ -260,6 +363,7 @@ export function SwapComponent() {
           onChange={handleFromTokenChange}
           label="From"
           balance={fromToken.symbol === "CPH" ? tokenBalances.cphFormattedBalance : tokenBalances.mskFormattedBalance}
+          hasError={hasInsufficientBalance}
         />
 
         <SwapButton onClick={handleTokenSwap} disabled={isOrderEncrypted} />
@@ -301,10 +405,10 @@ export function SwapComponent() {
       </div>
 
       <SubmitButton
-        text={buttonConfig.text}
-        onClick={buttonConfig.onClick}
-        disabled={buttonConfig.disabled}
-        isLoading={buttonConfig.isLoading}
+        text={safeButtonConfig.text}
+        onClick={safeButtonConfig.onClick}
+        disabled={safeButtonConfig.disabled}
+        isLoading={safeButtonConfig.isLoading}
       />
 
       {/* Approval Modal */}
@@ -320,11 +424,11 @@ export function SwapComponent() {
         isApproving={tokenAllowance.isApproving}
       />
 
-      <AsyncOrderStatus orders={asyncOrders.asyncOrders} />
-
-      {activeTab === "market" && marketOrderStatus.isProcessingOrder && (
+      {activeTab === "market" && (
         <TransactionGuide title="Market Order Progress" steps={marketOrderStatus.marketOrderSteps} />
       )}
+
+      <AsyncOrderStatus orders={asyncOrders.asyncOrders} />
     </div>
   );
 }

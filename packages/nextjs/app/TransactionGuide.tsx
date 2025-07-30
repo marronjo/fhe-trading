@@ -37,7 +37,9 @@ type TxGuideProps = {
 
 export const TransactionGuide: React.FC<TxGuideProps> = ({ title, steps }) => {
   const activeStepIndex = useMemo(() => {
-    return steps.findIndex(step => step.state !== TxGuideStepState.Success);
+    const index = steps.findIndex(step => step.state !== TxGuideStepState.Success);
+    // If all steps are successful, show the last step
+    return index === -1 ? steps.length - 1 : index;
   }, [steps]);
 
   return (
@@ -53,8 +55,8 @@ export const TransactionGuide: React.FC<TxGuideProps> = ({ title, steps }) => {
             {index < steps.length - 1 && (
               <div
                 className={cn(
-                  "flex flex-1 h-0.5 bg-primary rounded",
-                  step.state === TxGuideStepState.Success ? "bg-success-500" : "bg-primary",
+                  "flex flex-1 h-0.5 rounded",
+                  step.state === TxGuideStepState.Success ? "bg-green-500" : "bg-primary",
                 )}
               />
             )}
@@ -95,11 +97,11 @@ const TxGuideStep = ({
 const getStepColor = (state: TxGuideStepState, isActive: boolean) => {
   switch (state) {
     case TxGuideStepState.Success:
-      return "text-success-500";
+      return "text-green-500";
     case TxGuideStepState.Error:
-      return "text-destructive";
+      return "text-red-500";
     case TxGuideStepState.Loading:
-      return "text-warning-500";
+      return "text-black dark:text-white";
     case TxGuideStepState.Ready:
       return isActive ? "text-primary-accent" : "text-primary";
   }

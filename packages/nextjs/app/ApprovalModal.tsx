@@ -51,7 +51,8 @@ export function ApprovalModal({
           </div>
           <h3 className="text-xl font-semibold text-neutral-900 dark:text-white">🔐 Token Approval Required</h3>
           <p className="text-neutral-600 dark:text-neutral-400 text-sm">
-            To place market orders, approve the hook contract to spend your {tokenSymbol} tokens.
+            To place encrypted market orders, you need to approve the smart contract to spend your {tokenSymbol} tokens
+            on your behalf.
           </p>
         </div>
 
@@ -87,11 +88,23 @@ export function ApprovalModal({
               disabled={isApproving}
             />
             <div className="flex-1">
-              <div className="text-sm font-medium text-neutral-900 dark:text-white">
-                Approve exact amount ({formattedRequired} {tokenSymbol})
+              <div className="text-sm font-medium text-neutral-900 dark:text-white flex items-center gap-2">
+                <span>
+                  Approve exact amount ({formattedRequired} {tokenSymbol})
+                </span>
+                <svg className="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fillRule="evenodd"
+                    d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                    clipRule="evenodd"
+                  />
+                </svg>
               </div>
-              <div className="text-xs text-neutral-500 dark:text-neutral-400">
-                More secure, but you&apos;ll need to approve again for future orders
+              <div className="text-xs text-red-600 dark:text-red-400 font-medium">
+                ⚠️ WARNING: This reveals your trading intent on-chain! The exact amount will be visible to everyone.
+              </div>
+              <div className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
+                You&apos;ll need to approve again for future orders.
               </div>
             </div>
           </label>
@@ -108,11 +121,21 @@ export function ApprovalModal({
               disabled={isApproving}
             />
             <div className="flex-1">
-              <div className="text-sm font-medium text-neutral-900 dark:text-white">
-                Approve unlimited (recommended)
+              <div className="text-sm font-medium text-neutral-900 dark:text-white flex items-center gap-2">
+                <span>Approve unlimited (recommended for testnet)</span>
+                <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fillRule="evenodd"
+                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                    clipRule="evenodd"
+                  />
+                </svg>
               </div>
-              <div className="text-xs text-neutral-500 dark:text-neutral-400">
-                Convenient for future transactions, saves gas fees
+              <div className="text-xs text-green-600 dark:text-green-400 font-medium">
+                ✅ Preserves privacy - your trading amounts remain encrypted and hidden.
+              </div>
+              <div className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
+                Safe for this testnet demo and convenient for multiple trades without re-approval.
               </div>
             </div>
           </label>

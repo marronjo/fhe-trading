@@ -27,7 +27,6 @@ interface UseBusinessLogicProps {
   setIsProcessingOrder: (value: boolean) => void;
   setConfirmationStep: (step: TxGuideStepState) => void;
   setDecryptionStep: (step: TxGuideStepState) => void;
-  setExecutionStep: (step: TxGuideStepState) => void;
   setSettlementStep: (step: TxGuideStepState) => void;
   setTransactionHash: (hash: string) => void;
   resetTransactionStatus: () => void;
@@ -51,7 +50,6 @@ export function useBusinessLogic({
   setIsProcessingOrder,
   setConfirmationStep,
   setDecryptionStep,
-  setExecutionStep,
   setSettlementStep,
   setTransactionHash,
   resetTransactionStatus,
@@ -82,15 +80,7 @@ export function useBusinessLogic({
         }
       }
     }
-  }, [
-    manualDecryptionStatus,
-    isProcessingOrder,
-    decryptionStep,
-    setDecryptionStep,
-    setExecutionStep,
-    setSettlementStep,
-    moveToAsyncTracking,
-  ]);
+  }, [manualDecryptionStatus, isProcessingOrder, decryptionStep, setDecryptionStep, setSettlementStep]);
 
   // Remove encryption step handling since we pre-encrypt
 
@@ -173,7 +163,7 @@ export function useBusinessLogic({
         } catch (error) {
           console.error("Error in market order submission:", error);
           setConfirmationStep(TxGuideStepState.Error);
-          setTimeout(() => resetTransactionStatus(), 3000);
+          // Transaction status will remain visible until manually reset
         }
       };
 
