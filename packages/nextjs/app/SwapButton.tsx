@@ -1,13 +1,19 @@
 interface SwapButtonProps {
   onClick: () => void;
+  disabled?: boolean;
 }
 
-export function SwapButton({ onClick }: SwapButtonProps) {
+export function SwapButton({ onClick, disabled = false }: SwapButtonProps) {
   return (
     <div className="flex justify-center">
       <button
         onClick={onClick}
-        className="bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600 rounded-full p-2 transition-colors"
+        disabled={disabled}
+        className={`rounded-full p-2 transition-colors ${
+          disabled
+            ? "bg-neutral-100 dark:bg-neutral-800 cursor-not-allowed opacity-50"
+            : "bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600"
+        }`}
         aria-label="Swap tokens"
       >
         <svg
