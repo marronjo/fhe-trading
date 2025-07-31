@@ -17,15 +17,13 @@ export function AsyncOrderStatus({ orders }: { orders: AsyncOrder[] }) {
 
   if (uniqueOrders.length === 0) return null;
 
-  const executingCount = uniqueOrders.filter(o => o.status === "executing").length;
+  const queuedCount = uniqueOrders.filter(o => o.status === "executing").length;
 
   return (
     <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
       <div className="flex items-center gap-2 mb-2">
         <div className="animate-pulse w-2 h-2 bg-blue-500 rounded-full" />
-        <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
-          {executingCount} order(s) executing
-        </span>
+        <span className="text-sm font-medium text-blue-700 dark:text-blue-300">{queuedCount} order(s) queued</span>
       </div>
       {uniqueOrders.map(order => (
         <div key={order.id} className="text-xs text-blue-600 dark:text-blue-400 flex justify-between items-center">
@@ -41,7 +39,7 @@ export function AsyncOrderStatus({ orders }: { orders: AsyncOrder[] }) {
                   : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300"
             }`}
           >
-            {order.status}
+            {order.status === "executing" ? "queued" : order.status}
           </span>
         </div>
       ))}
