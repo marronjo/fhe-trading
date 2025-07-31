@@ -45,6 +45,7 @@ export const TransactionGuide: React.FC<TxGuideProps> = ({ title, steps }) => {
   return (
     <div className="flex flex-col gap-2 bg-primary-foreground rounded-2xl p-4 w-full">
       <div className="flex flex-row justify-start items-center gap-2 text-primary">
+        {/* @ts-ignore - React 19 compatibility issue with lucide-react */}
         <CircleAlert />
         <span className="font-semibold">{title}</span>
       </div>
@@ -159,6 +160,7 @@ const TxGuideStepCircleIcon = ({
 
   const loading = state === TxGuideStepState.Loading;
 
+  // @ts-ignore - React 19 compatibility issue with lucide-react
   return <Icon className={cn(color, loading && "animate-spin")} />;
 };
 

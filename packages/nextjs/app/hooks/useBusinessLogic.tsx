@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo } from "react";
+import { HashLink } from "../HashLink";
 import { TabType } from "../Tab";
 import { Token } from "../Token";
 import { TxGuideStepState } from "../TransactionGuide";
@@ -7,9 +8,10 @@ import { HOOK_DATA, POOL_KEY, TEST_SETTINGS } from "../constants/Constants";
 import { MarketOrderAbi } from "../constants/MarketOrder";
 import { PoolSwapAbi } from "../constants/PoolSwap";
 import { CoFheInItem } from "cofhejs/web";
-// Removed unused imports
 import { parseUnits } from "viem";
 import { useWriteContract } from "wagmi";
+import { useTargetNetwork } from "~~/hooks/scaffold-eth";
+import { getBlockExplorerTxLink, notification } from "~~/utils/scaffold-eth";
 
 interface UseBusinessLogicProps {
   fromToken: Token;
@@ -57,6 +59,7 @@ export function useBusinessLogic({
   setIsSwapLoading,
 }: UseBusinessLogicProps) {
   const { writeContractAsync } = useWriteContract();
+  const { targetNetwork } = useTargetNetwork();
 
   // Handle decryption status updates
   useEffect(() => {
@@ -140,10 +143,6 @@ export function useBusinessLogic({
         try {
           const zeroForOne = fromToken.symbol === "CPH";
 
-          console.log("Using pre-encrypted object:", encryptedObject);
-          console.log("encryptedObject keys:", Object.keys(encryptedObject || {}));
-          console.log("encryptedObject type:", typeof encryptedObject);
-
           // Log all arguments being passed to the contract
           console.log("Contract call arguments:", {
             poolKey: POOL_KEY,
@@ -160,6 +159,24 @@ export function useBusinessLogic({
           });
 
           setTransactionHash(hash);
+
+          const link = getBlockExplorerTxLink(targetNetwork.id, hash);
+
+          // Show success notification with block explorer link
+          notification.success(
+            <div className={`flex flex-col cursor-default gap-1 text-primary`}>
+              <p className="my-0">Market Order Submitted! Your encrypted order has been submitted to the blockchain</p>
+              <div className="flex flex-row gap-1">
+                {hash && (
+                  <>
+                    <p className="text-sm text-muted-foreground font-reddit-mono">View Transaction:</p>
+                    <HashLink href={link} hash={hash} />
+                  </>
+                )}
+              </div>
+            </div>,
+            { duration: 8000 },
+          );
         } catch (error) {
           console.error("Error in market order submission:", error);
           setConfirmationStep(TxGuideStepState.Error);

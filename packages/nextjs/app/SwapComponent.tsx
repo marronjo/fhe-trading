@@ -376,6 +376,14 @@ export function SwapComponent() {
           readOnly={true}
           isLoading={quoteData.loadingQuote}
           balance={toToken.symbol === "CPH" ? tokenBalances.cphFormattedBalance : tokenBalances.mskFormattedBalance}
+          hasError={quoteData.hasQuoteError}
+          errorMessage={
+            quoteData.hasQuoteError
+              ? quoteData.isTimeout
+                ? "Quote timeout - try a smaller amount"
+                : "Error fetching quote"
+              : undefined
+          }
         />
 
         {/* Encrypted Value Display */}

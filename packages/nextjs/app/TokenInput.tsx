@@ -9,6 +9,7 @@ interface TokenInputProps {
   isLoading?: boolean;
   balance?: string;
   hasError?: boolean;
+  errorMessage?: string;
 }
 
 export function TokenInput({
@@ -20,6 +21,7 @@ export function TokenInput({
   isLoading = false,
   balance = "0",
   hasError = false,
+  errorMessage,
 }: TokenInputProps) {
   return (
     <div
@@ -64,7 +66,9 @@ export function TokenInput({
         </div>
       </div>
       <div className="mt-2 text-xs h-4 flex justify-between items-center">
-        <span className="text-neutral-400 dark:text-neutral-500">{readOnly && token.value && "Auto-calculated"}</span>
+        <span className={`${hasError ? "text-red-500 dark:text-red-400" : "text-neutral-400 dark:text-neutral-500"}`}>
+          {hasError && errorMessage ? errorMessage : readOnly && token.value && "Auto-calculated"}
+        </span>
         <span className="text-neutral-400 dark:text-neutral-500">
           {balance} {token.symbol}
         </span>

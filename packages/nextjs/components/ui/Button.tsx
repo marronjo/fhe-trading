@@ -77,6 +77,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         )}
         {...props}
       >
+        {/* @ts-ignore - React 19 compatibility issue with Lucide React icons */}
         {Icon && <Icon style={{ width: iconSizeVariants[iconSize], height: iconSizeVariants[iconSize] }} />}
         {children}
       </button>
