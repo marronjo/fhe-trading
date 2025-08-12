@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { CIPHER_TOKEN, MASK_TOKEN } from "../constants/Constants";
 import { erc20Abi, formatUnits } from "viem";
 import { useAccount, useReadContract } from "wagmi";
@@ -5,23 +6,29 @@ import { useAccount, useReadContract } from "wagmi";
 export function useTokenBalances() {
   const { address, isConnected } = useAccount();
 
-  const { data: cphBalance } = useReadContract({
+  const { data: cphBalance, refetch: refetchCphBalance } = useReadContract({
     abi: erc20Abi,
     address: CIPHER_TOKEN,
     functionName: "balanceOf",
     args: [address!],
     query: {
       enabled: isConnected && !!address,
+      // Reduce cache time to ensure fresher data
+      staleTime: 5000, // 5 seconds
+      gcTime: 10000, // 10 seconds
     },
   });
 
-  const { data: mskBalance } = useReadContract({
+  const { data: mskBalance, refetch: refetchMskBalance } = useReadContract({
     abi: erc20Abi,
     address: MASK_TOKEN,
     functionName: "balanceOf",
     args: [address!],
     query: {
       enabled: isConnected && !!address,
+      // Reduce cache time to ensure fresher data
+      staleTime: 5000, // 5 seconds
+      gcTime: 10000, // 10 seconds
     },
   });
 
@@ -40,10 +47,32 @@ export function useTokenBalances() {
     return num.toExponential(2);
   };
 
+  const refetchAllBalances = useCallback(async () => {
+    const results = await Promise.all([refetchCphBalance(), refetchMskBalance()]);
+
+    // Force a small delay to ensure React has time to re-render with new data
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    return results;
+  }, [refetchCphBalance, refetchMskBalance]);
+
+  const refetchTokenBalance = useCallback(
+    async (token: "CPH" | "MSK") => {
+      if (token === "CPH") {
+        await refetchCphBalance();
+      } else {
+        await refetchMskBalance();
+      }
+    },
+    [refetchCphBalance, refetchMskBalance],
+  );
+
   return {
     cphFormattedBalance: formatBalance(cphBalance),
     mskFormattedBalance: formatBalance(mskBalance),
     cphRawBalance: cphBalance || 0n,
     mskRawBalance: mskBalance || 0n,
+    refetchAllBalances,
+    refetchTokenBalance,
   };
 }

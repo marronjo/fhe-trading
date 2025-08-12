@@ -10,7 +10,7 @@ import { PoolSwapAbi } from "../constants/PoolSwap";
 import { useSwapTransactionMonitor } from "./useSwapTransactionMonitor";
 import { CoFheInItem } from "cofhejs/web";
 import { parseUnits } from "viem";
-import { useAccount, useWriteContract } from "wagmi";
+import { useAccount, useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 import { useTargetNetwork } from "~~/hooks/scaffold-eth";
 import { getBlockExplorerTxLink, notification } from "~~/utils/scaffold-eth";
 
@@ -36,6 +36,7 @@ interface UseBusinessLogicProps {
   setIsSwapLoading: (loading: boolean) => void;
   updateOrderStatus: (id: string, status: "completed" | "failed") => void;
   updateOrderStatusByHandle: (handle: bigint, status: "completed" | "failed") => void;
+  refetchAllBalances: () => Promise<any>;
 }
 
 export function useBusinessLogic({
@@ -59,6 +60,7 @@ export function useBusinessLogic({
   moveToAsyncTracking,
   setIsSwapLoading,
   updateOrderStatusByHandle,
+  refetchAllBalances,
 }: UseBusinessLogicProps) {
   const { writeContractAsync } = useWriteContract();
   const { targetNetwork } = useTargetNetwork();
@@ -66,6 +68,14 @@ export function useBusinessLogic({
 
   // Track swap transaction hash for monitoring
   const [swapTransactionHash, setSwapTransactionHash] = useState<string | null>(null);
+
+  // Watch for swap transaction confirmation
+  const { data: swapReceipt } = useWaitForTransactionReceipt({
+    hash: swapTransactionHash as `0x${string}`,
+    query: {
+      enabled: !!swapTransactionHash,
+    },
+  });
 
   // Memoize callback functions to prevent infinite re-renders
   const handleOrderSettled = useCallback(
@@ -98,21 +108,42 @@ export function useBusinessLogic({
     onOrderFailed: handleOrderFailed,
   });
 
+  // Refetch balances when swap transaction is confirmed
+  useEffect(() => {
+    if (swapReceipt) {
+      if (swapReceipt.status === "success") {
+        const refetchBalances = async () => {
+          try {
+            await refetchAllBalances();
+          } catch (error) {
+            console.error("Failed to refresh balances after swap:", error);
+          }
+        };
+        refetchBalances();
+      }
+
+      // Clear the transaction hash after processing (success or failure)
+      setTimeout(() => {
+        setSwapTransactionHash(null);
+      }, 2000);
+    }
+  }, [swapReceipt, refetchAllBalances]);
+
   // Handle decryption status updates
   useEffect(() => {
     console.log("MANUAL DECRYPTION STATUS:", manualDecryptionStatus);
 
     if (manualDecryptionStatus !== undefined && isProcessingOrder) {
       if (manualDecryptionStatus === true) {
-        console.log("✅ Decryption complete! Moving to execution phase.");
+        console.log("✅ Decryption complete! Order is now queued for execution.");
         setDecryptionStep(TxGuideStepState.Success);
-        setSettlementStep(TxGuideStepState.Loading);
 
-        setTimeout(() => {
-          setSettlementStep(TxGuideStepState.Success);
-          console.log("Moving order to async tracking...");
-          moveToAsyncTracking();
-        }, 3000);
+        // Don't set settlement step to loading again - it should already be Success from initial queuing
+        // Order should stay in queued state until actually executed by a swap
+        setSettlementStep(TxGuideStepState.Success);
+
+        // Don't automatically move to async tracking - let the order stay queued
+        // It will only move to execution when a swap actually triggers it
       } else if (manualDecryptionStatus === false) {
         console.log("⏳ Still waiting for decryption...");
         if (decryptionStep !== TxGuideStepState.Loading) {
@@ -156,13 +187,9 @@ export function useBusinessLogic({
             abi: PoolSwapAbi,
             functionName: "swap",
             args: [POOL_KEY, swapParams, TEST_SETTINGS, HOOK_DATA],
-            gas: 500000n, // Add reasonable gas limit
           });
 
-          console.log("Swap transaction submitted:", txHash);
-
           // Set swap transaction hash for monitoring
-          console.log(`🔍 SETTING SWAP HASH FOR MONITORING: ${txHash}`);
           setSwapTransactionHash(txHash);
 
           const link = getBlockExplorerTxLink(targetNetwork.id, txHash);
@@ -186,15 +213,23 @@ export function useBusinessLogic({
           // Reset loading state after transaction is submitted
           setIsSwapLoading(false);
 
-          // Clear swap transaction hash after showing notification
-          setTimeout(() => {
-            setSwapTransactionHash(null);
-          }, 1000);
-        } catch (error) {
+          // Note: Balance refetch and transaction hash clearing is now handled by useWaitForTransactionReceipt effect above
+        } catch (error: any) {
           console.error("Swap transaction failed:", error);
+          console.error("Error details:", {
+            message: error?.message,
+            cause: error?.cause,
+            details: error?.details,
+            data: error?.data,
+          });
           setIsSwapLoading(false);
           // Clear swap transaction hash on error
           setSwapTransactionHash(null);
+
+          // Show user-friendly error message
+          notification.error(`Swap failed: ${error?.shortMessage || error?.message || "Unknown error"}`, {
+            duration: 5000,
+          });
         }
       };
       swapTokens();
